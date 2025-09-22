@@ -1,0 +1,311 @@
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-sc@5.0.22/index.min.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 220 30% 5%;
+    --foreground: 210 40% 95%;
+
+    --card: 220 25% 8%;
+    --card-foreground: 210 40% 95%;
+
+    --popover: 220 25% 8%;
+    --popover-foreground: 210 40% 95%;
+
+    --primary: 210 100% 50%;
+    --primary-foreground: 210 40% 5%;
+
+    --secondary: 220 20% 15%;
+    --secondary-foreground: 210 40% 90%;
+
+    --muted: 220 15% 12%;
+    --muted-foreground: 215 20% 60%;
+
+    --accent: 125 60% 45%;
+    --accent-foreground: 210 40% 95%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 15%;
+    --ring: 210 100% 60%;
+
+    --radius: 0.75rem;
+
+    /* AI Demo Specific Colors */
+    --tech-blue: 210 100% 50%;
+    --tech-blue-dark: 210 100% 35%;
+    --tech-blue-light: 210 100% 65%;
+    --tech-green: 125 60% 45%;
+    --tech-green-glow: 125 60% 55%;
+    --tech-gray: 220 15% 25%;
+    --tech-gray-light: 220 15% 35%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(210 100% 50%) 0%, hsl(210 100% 35%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(220 25% 8%) 0%, hsl(220 20% 12%) 100%);
+    --gradient-glow: radial-gradient(circle at center, hsl(210 100% 50% / 0.1) 0%, transparent 70%);
+    
+    /* Shadows */
+    --shadow-glow: 0 0 30px hsl(210 100% 50% / 0.3);
+    --shadow-card: 0 10px 40px hsl(220 30% 5% / 0.5);
+    
+    /* Animations */
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-glow: box-shadow 0.3s ease-in-out;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Alibaba PuHuiTi', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  }
+}
+
+@layer components {
+  .glow-effect {
+    box-shadow: var(--shadow-glow);
+    transition: var(--transition-glow);
+  }
+  
+  .glow-effect:hover {
+    box-shadow: 0 0 40px hsl(210 100% 50% / 0.5);
+  }
+  
+  .card-gradient {
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+  }
+  
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .floating-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+  
+  .slide-up {
+    animation: slideUp 0.6s ease-out;
+  }
+  
+  .fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  /* 展会优化：呼吸动画效果 */
+  @keyframes breathe {
+    0%, 100% {
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+      opacity: 0.8;
+    }
+    50% {
+      box-shadow: 0 0 16px rgba(255, 255, 255, 0.2);
+      opacity: 1;
+    }
+  }
+
+  /* 展会优化：淡入向上动画 */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* 展会优化：脉冲发光动画 */
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
+    }
+  }
+
+  /* 展会优化：连接线流动动画 */
+  @keyframes flowLine {
+    0% {
+      stroke-dashoffset: 10;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* 展会优化：旋转发光动画 */
+  @keyframes spinGlow {
+    0% {
+      transform: rotate(0deg);
+      filter: drop-shadow(0 0 10px hsl(var(--primary) / 0.5));
+    }
+    100% {
+      transform: rotate(360deg);
+      filter: drop-shadow(0 0 20px hsl(var(--primary) / 0.8));
+    }
+  }
+
+  /* 展会优化：中央调度器专用动画 */
+  @keyframes centralDispatch {
+    0% {
+      transform: scale(1) rotate(0deg);
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    }
+    50% {
+      transform: scale(1.1) rotate(180deg);
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.7);
+    }
+    100% {
+      transform: scale(1) rotate(360deg);
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    }
+  }
+
+  /* 展会优化：任务池滑动动画 */
+  @keyframes slideUpSmooth {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* 工具类：动画效果 */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  .animate-flow-line {
+    animation: flowLine 2s ease-in-out infinite;
+  }
+
+  .animate-spin-glow {
+    animation: spinGlow 3s linear infinite;
+  }
+
+  .animate-central-dispatch {
+    animation: centralDispatch 4s ease-in-out infinite;
+  }
+
+  .animate-slide-up-smooth {
+    animation: slideUpSmooth 0.4s ease-out forwards;
+  }
+
+  /* Custom Scrollbar for Sci-Fi Terminal Look */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 200, 255, 0.1);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00c8ff, #0080ff);
+    border-radius: 3px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #00e0ff, #00a0ff);
+  }
+}
+
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+}
