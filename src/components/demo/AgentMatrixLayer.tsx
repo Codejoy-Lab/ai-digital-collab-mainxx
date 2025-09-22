@@ -810,22 +810,24 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
           </div>
         </div>
 
-        {/* Hidden Task Pool - Slide up from bottom */}
+        {/* Hidden Task Pool - Sci-Fi Style */}
         <div
-          className={`fixed bottom-0 left-0 right-80 bg-card/95 backdrop-blur-sm border-t-2 border-border transition-transform duration-300 z-30 ${
+          className={`fixed bottom-0 left-0 right-96 bg-gradient-to-t from-black/95 via-tech-blue/10 to-transparent backdrop-blur-xl border-t-2 border-tech-blue/50 transition-transform duration-300 z-30 ${
             isTaskPoolVisible ? 'translate-y-0' : 'translate-y-[calc(100%-3rem)]'
           }`}
           onMouseEnter={() => setIsTaskPoolVisible(true)}
           onMouseLeave={() => setIsTaskPoolVisible(false)}
         >
-          {/* Task Pool Header */}
-          <div className="px-6 py-2 border-b border-border/50 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Zap className="w-5 h-5 text-primary" />
-              <h3 className="text-lg font-semibold text-foreground">智能任务池</h3>
-              <span className="text-sm text-muted-foreground">({taskCards.length} 个可用任务)</span>
+          {/* Task Pool Header - Sci-Fi Style */}
+          <div className="px-6 py-2 border-b border-tech-blue/30 flex items-center justify-between bg-gradient-to-r from-black/80 via-tech-blue/5 to-black/80">
+            <div className="flex items-center space-x-3">
+              <Zap className="w-5 h-5 text-tech-blue animate-pulse" />
+              <h3 className="text-lg font-bold bg-gradient-to-r from-tech-blue to-primary bg-clip-text text-transparent">
+                🚀 智能任务池
+              </h3>
+              <span className="text-sm text-tech-blue/80 font-mono">[{taskCards.length} TASKS]</span>
             </div>
-            <ChevronUp className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isTaskPoolVisible ? 'rotate-0' : 'rotate-180'}`} />
+            <ChevronUp className={`w-5 h-5 text-tech-blue transition-transform duration-300 ${isTaskPoolVisible ? 'rotate-0' : 'rotate-180'}`} />
           </div>
 
           {/* Task Cards */}
@@ -844,10 +846,10 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                     onMouseLeave={() => handleTaskHover(null)}
                     onClick={() => !executionStarted && handleTaskClick(task)}
                   >
-                    <div className={`border-2 border-primary/30 rounded-lg p-4 transition-all duration-300 bg-gradient-to-br from-background/90 to-card/90 backdrop-blur-sm shadow-lg ${!executionStarted ? 'hover:scale-105 hover:border-primary/60 group-hover:shadow-xl' : 'opacity-50 cursor-not-allowed'}`}>
+                    <div className={`border-2 border-tech-blue/30 rounded-lg p-4 transition-all duration-300 bg-gradient-to-br from-black/80 to-tech-blue/5 backdrop-blur-sm shadow-lg ${!executionStarted ? 'hover:scale-105 hover:border-tech-blue/60 hover:shadow-[0_0_30px_rgba(0,200,255,0.3)] group-hover:shadow-xl' : 'opacity-50 cursor-not-allowed'}`}>
                       <div className="flex items-start space-x-3">
-                        <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-all duration-300 flex-shrink-0 border border-primary/50">
-                          <IconComponent className="w-7 h-7 text-primary" />
+                        <div className="w-12 h-12 rounded-lg bg-tech-blue/20 flex items-center justify-center group-hover:bg-tech-blue/30 transition-all duration-300 flex-shrink-0 border border-tech-blue/50 shadow-[0_0_10px_rgba(0,200,255,0.2)]">
+                          <IconComponent className="w-7 h-7 text-tech-blue" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
@@ -855,9 +857,9 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                           </div>
                           <p className="text-xs text-accent mb-2 font-medium">{task.titleEn}</p>
                           <p className="text-xs text-muted-foreground leading-relaxed">{task.description}</p>
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="text-lg font-bold text-primary">{task.requiredAgents.length}</div>
-                            <div className="text-xs text-muted-foreground">协作专家</div>
+                          <div className="flex items-center justify-between mt-3 p-2 bg-black/60 rounded border border-tech-blue/20">
+                            <div className="text-lg font-bold text-tech-green font-mono">{task.requiredAgents.length.toString().padStart(2, '0')}</div>
+                            <div className="text-xs text-tech-blue/80 font-mono">AGENTS</div>
                           </div>
                         </div>
                       </div>
@@ -894,39 +896,61 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
           </div>
           <div className="flex items-center space-x-2">
             <Activity className={`w-5 h-5 ${executionState === 'running' ? 'text-green-400 animate-pulse' : 'text-tech-blue'}`} />
-            <span className="text-base font-mono ${executionState === 'running' ? 'text-green-400' : 'text-tech-blue/80'}">
+            <span className={`text-base font-mono ${executionState === 'running' ? 'text-green-400' : 'text-tech-blue/80'}`}>
               {executionState === 'idle' ? '[STANDBY]' :
                executionState === 'running' ? '[EXECUTING]' : '[COMPLETE]'}
             </span>
           </div>
         </div>
 
-        {/* Task Progress - Sci-Fi Style */}
+        {/* Task Progress - Task List Style */}
         {selectedTask && (
           <div className="p-5 border-b border-tech-blue/30 bg-black/60 relative z-10">
             <div className="flex items-center justify-between mb-3">
               <span className="text-base font-bold text-tech-blue font-mono">[{selectedTask.title}]</span>
               <span className="text-sm font-mono text-green-400">{Math.round(taskProgress).toString().padStart(3, '0')}%</span>
             </div>
-            <div className="relative">
-              <div className="w-full bg-black/80 border border-tech-blue/30 rounded-sm h-3 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-tech-blue via-primary to-tech-green transition-all duration-300 relative"
-                  style={{ width: `${taskProgress}%` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
-                </div>
-              </div>
-              {/* Progress Grid Overlay */}
-              <div className="absolute inset-0 pointer-events-none flex">
-                {Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className="flex-1 border-r border-tech-blue/20" />
-                ))}
-              </div>
+
+            {/* Task Steps List */}
+            <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar pr-2">
+              {selectedTask.workflow.map((step, idx) => {
+                const isComplete = completedAgents.includes(step.agentId);
+                const isCurrent = idx === currentStepIndex;
+                const isPending = idx > currentStepIndex;
+
+                return (
+                  <div
+                    key={step.id}
+                    className={`flex items-center space-x-3 p-2 rounded border transition-all duration-300 ${
+                      isCurrent ? 'bg-tech-blue/20 border-tech-blue/50 animate-pulse' :
+                      isComplete ? 'bg-green-500/10 border-green-500/30' :
+                      'bg-black/40 border-tech-blue/20 opacity-50'
+                    }`}
+                  >
+                    <div className={`w-2 h-2 rounded-full ${
+                      isComplete ? 'bg-green-400' :
+                      isCurrent ? 'bg-tech-blue animate-pulse' :
+                      'bg-gray-600'
+                    }`} />
+                    <div className="flex-1">
+                      <div className="text-xs font-mono text-tech-blue/90">
+                        {step.agentName}
+                      </div>
+                      <div className="text-xs font-mono text-tech-green/70">
+                        ▶ {step.action}
+                      </div>
+                    </div>
+                    <div className="text-xs font-mono">
+                      {isComplete ? '✓' : isCurrent ? '▶' : '-'}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <div className="flex justify-between text-xs font-mono mt-2">
-              <span className="text-tech-green">▶ AGENTS: {completedAgents.length}/{selectedTask.requiredAgents.length}</span>
-              <span className="text-accent">▶ STEP: {currentStepIndex + 1}/{selectedTask.workflow.length}</span>
+
+            <div className="flex justify-between text-xs font-mono mt-3 pt-2 border-t border-tech-blue/20">
+              <span className="text-tech-green">▶ COMPLETED: {completedAgents.length}/{selectedTask.requiredAgents.length}</span>
+              <span className="text-accent">▶ PROGRESS: {currentStepIndex + 1}/{selectedTask.workflow.length}</span>
             </div>
           </div>
         )}
