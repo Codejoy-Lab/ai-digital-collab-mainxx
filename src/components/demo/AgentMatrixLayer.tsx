@@ -48,7 +48,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
   const [selectedTask, setSelectedTask] = useState<TaskCard | null>(null);
   const [highlightedAgents, setHighlightedAgents] = useState<string[]>([]);
   const [isTaskPoolVisible, setIsTaskPoolVisible] = useState(false);
-  const [executionState, setExecutionState] = useState<'idle' | 'running' | 'completed'>('idle');
+  const [executionState, setExecutionState] = useState<'idle' | 'dispatching' | 'running' | 'completed'>('idle');
   const [currentExecutingAgent, setCurrentExecutingAgent] = useState<string | null>(null);
   const [completedAgents, setCompletedAgents] = useState<string[]>([]);
   const [executionLogs, setExecutionLogs] = useState<string[]>([]);
@@ -58,6 +58,8 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
   const [showOutputDialog, setShowOutputDialog] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [executionStarted, setExecutionStarted] = useState(false);
+  const [isDispatcherActive, setIsDispatcherActive] = useState(false);
+  const [dispatchingAgents, setDispatchingAgents] = useState<string[]>([]);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [sessionId] = useState(`session_${Date.now()}`);
   const wsRef = useRef<WebSocket | null>(null);
@@ -264,20 +266,71 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
 
   const handleTaskClick = (task: TaskCard) => {
     setSelectedTask(task);
-    setHighlightedAgents(task.requiredAgents);
-    setExecutionState('running');
+    setHighlightedAgents([]); // 先清空高亮
+    setExecutionState('dispatching'); // 开始调度阶段
     setExecutionStarted(true);
     setCurrentStepIndex(0);
     setCompletedAgents([]);
     setAgentOutputs([]);
+    setIsDispatcherActive(true); // 激活中央调度器
+    setDispatchingAgents([]);
 
     // Pass task to parent for data persistence
     onTaskSelect(task);
 
-    setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 🚀 开始执行任务: ${task.title}`, ...prev]);
+    setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 🎯 收到新任务: ${task.title}`, ...prev]);
 
-    // Always use simulation for demo
-    startTaskExecution(task);
+    // 开始调度流程
+    startDispatchingProcess(task);
+  };
+
+  const startDispatchingProcess = (task: TaskCard) => {
+    // 第一阶段：中央调度器分析任务
+    setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 🤖 中央调度器正在分析任务需求...`, ...prev]);
+
+    setTimeout(() => {
+      setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 📋 任务分析完成，需要以下专业Agent:`, ...prev]);
+
+      // 获取需要的Agent信息并显示
+      const requiredAgentDetails = task.requiredAgents.map(agentId => {
+        const agent = agents.find(a => a.id === agentId);
+        return agent ? `${agent.name} (${agent.department})` : agentId;
+      });
+
+      setTimeout(() => {
+        setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 👥 调度以下Agent协作完成任务:`, ...prev]);
+
+        // 逐个显示被调度的Agent
+        let agentIndex = 0;
+        const dispatchAgents = () => {
+          if (agentIndex < requiredAgentDetails.length) {
+            const agentDetail = requiredAgentDetails[agentIndex];
+            const agentId = task.requiredAgents[agentIndex];
+
+            setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ▶ 调度: ${agentDetail}`, ...prev]);
+            setDispatchingAgents(prev => [...prev, agentId]);
+
+            agentIndex++;
+            setTimeout(dispatchAgents, 800); // 每0.8秒调度一个Agent
+          } else {
+            // 调度完成，开始执行工作流
+            setTimeout(() => {
+              setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ✅ Agent调度完成，开始执行工作流`, ...prev]);
+              setIsDispatcherActive(false);
+              setHighlightedAgents(task.requiredAgents);
+              setExecutionState('running');
+
+              // 开始正常的工作流执行
+              setTimeout(() => {
+                startTaskExecution(task);
+              }, 1000);
+            }, 1000);
+          }
+        };
+
+        dispatchAgents();
+      }, 1000);
+    }, 1500);
   };
 
   // WebSocket connection
@@ -613,6 +666,8 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     const isExecuting = currentExecutingAgent === agent.id;
     const isCompleted = completedAgents.includes(agent.id);
     const hasOutput = agentOutputs.some(o => o.agentId === agent.id);
+    const isBeingDispatched = executionState === 'dispatching' && dispatchingAgents.includes(agent.id);
+    const isDimmed = executionState === 'dispatching' && !isSelected && !isBeingDispatched;
 
     const position = getAgentPosition(agent, index);
 
@@ -625,12 +680,13 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
           ${hasOutput ? 'cursor-pointer' : 'cursor-default'}
           w-16 h-16
           ${getDepartmentColor(agent.department)}
-          ${isHighlighted || isSelected ? 'scale-125 border-primary border-3 shadow-[0_0_30px_hsl(var(--primary)/0.7)] z-30' : 'scale-100'}
-          ${executionStarted && !isSelected ? 'opacity-30 scale-90' : 'opacity-100'}
+          ${(isHighlighted || isSelected) && executionState === 'running' ? 'scale-125 border-primary border-3 shadow-[0_0_30px_hsl(var(--primary)/0.7)] z-30' : isBeingDispatched ? 'scale-125 border-tech-green border-3 shadow-[0_0_30px_hsl(var(--tech-green)/0.7)] z-30' : 'scale-100'}
+          ${isDimmed ? 'opacity-20 scale-80' : executionState === 'running' && !isSelected ? 'opacity-30 scale-90' : 'opacity-100'}
           ${isHovered ? 'scale-110 z-40' : ''}
           ${isExecuting ? 'animate-pulse shadow-[0_0_40px_hsl(var(--primary)/0.9)]' : ''}
           ${isCompleted ? 'bg-green-500/30 border-green-400 shadow-[0_0_25px_hsl(120,60%,50%,0.6)]' : ''}
-          ${!isHighlighted && !isSelected && !isHovered && !isExecuting && !isCompleted && !executionStarted ? 'animate-[breathe_4s_ease-in-out_infinite]' : ''}
+          ${isBeingDispatched ? 'bg-tech-green/30 border-tech-green animate-pulse shadow-[0_0_30px_hsl(var(--tech-green)/0.8)]' : ''}
+          ${!isHighlighted && !isSelected && !isHovered && !isExecuting && !isCompleted && executionState === 'idle' && !isBeingDispatched ? 'animate-[breathe_4s_ease-in-out_infinite]' : ''}
         `}
         style={position.style}
         onMouseEnter={() => setHoveredAgent(agent.id)}
@@ -746,7 +802,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
             ))}
 
             {/* Connection Lines between Agents */}
-            {selectedTask && executionStarted && (
+            {selectedTask && executionState === 'running' && (
               <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <defs>
                   {/* Gradient for active connections */}
@@ -898,15 +954,39 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
 
             {/* Central Dispatcher Agent */}
             <div
-              className="absolute rounded-2xl border-4 border-primary bg-primary/20 p-4 transition-all duration-700 transform flex flex-col items-center justify-center text-center hover:scale-110 hover:shadow-[0_0_60px_hsl(var(--primary)/0.8)] w-20 h-20 z-50 animate-pulse-glow"
+              className={`absolute rounded-2xl border-4 p-4 transition-all duration-700 transform flex flex-col items-center justify-center text-center w-20 h-20 z-50 ${
+                executionState === 'dispatching' && isDispatcherActive
+                  ? 'border-tech-green bg-tech-green/30 scale-125 shadow-[0_0_60px_hsl(var(--tech-green)/0.8)] animate-pulse'
+                  : executionState === 'running'
+                  ? 'border-primary/60 bg-primary/10 scale-100 opacity-60'
+                  : executionState === 'completed'
+                  ? 'border-green-400 bg-green-400/20 scale-100'
+                  : 'border-primary bg-primary/20 hover:scale-110 hover:shadow-[0_0_60px_hsl(var(--primary)/0.8)] animate-pulse-glow'
+              }`}
               style={{
                 left: `${centralDispatcher.x}%`,
                 top: `${centralDispatcher.y}%`,
                 transform: 'translate(-50%, -50%)'
               }}
             >
-              <Network className="w-10 h-10 text-primary" />
-              <div className="absolute left-1/2 top-[125%] -translate-x-1/2 whitespace-nowrap text-sm font-bold text-primary drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] bg-black/40 rounded-lg px-2.5 py-1">
+              <Network className={`w-10 h-10 ${
+                executionState === 'dispatching' && isDispatcherActive
+                  ? 'text-tech-green'
+                  : executionState === 'running'
+                  ? 'text-primary/60'
+                  : executionState === 'completed'
+                  ? 'text-green-400'
+                  : 'text-primary'
+              }`} />
+              <div className={`absolute left-1/2 top-[125%] -translate-x-1/2 whitespace-nowrap text-sm font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] bg-black/40 rounded-lg px-2.5 py-1 ${
+                executionState === 'dispatching' && isDispatcherActive
+                  ? 'text-tech-green'
+                  : executionState === 'running'
+                  ? 'text-primary/60'
+                  : executionState === 'completed'
+                  ? 'text-green-400'
+                  : 'text-primary'
+              }`}>
                 🌟 中央调度
               </div>
             </div>
