@@ -572,27 +572,67 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     }
   };
 
-  // 网格分布参数（可按视觉调整）
-  const NODE_SIZE_PERCENT = 4;          // 近似节点直径（%），w-16/h-16 大致 ~4%
-  const LABEL_HEIGHT_PERCENT = 2.2;     // 名称标签高度占比（%）
-  const CELL_X_PADDING = 0.6;           // 每格水平内边距（%）
-  const CELL_Y_PADDING = 0.6;           // 每格垂直内边距（%）
-  const AREA_SAFE_PADDING = 2;          // 部门区域整体安全边距（%），避免靠边
-  const ROW_EXTRA_GAP_FOR_LABEL = 1.6;  // 额外行间距用于给标签让位（%）
+  // 布局常量（根据视觉可微调）
+  const NODE_SIZE_PERCENT = 4.2;        // 节点近似直径（%）
+  const LABEL_HEIGHT_PERCENT = 2.3;     // 标签高度（%），含行高
+  const CELL_X_PADDING = 0.8;           // 每格左右内边距（%）
+  const CELL_Y_PADDING = 0.8;           // 每格上下内边距（%）
+  const ROW_EXTRA_GAP_FOR_LABEL = 1.4;  // 标签与下一行卡片的额外行距（%）
+  const AREA_SAFE_PADDING = 2.0;        // 部门区域整体安全边距（%）
 
-  // 计算列数：尽量接近方形
-  const computeGrid = (count: number) => {
-    if (count <= 0) return { cols: 1, rows: 1 };
-    const cols = Math.ceil(Math.sqrt(count));
-    const rows = Math.ceil(count / cols);
-    return { cols, rows };
+  // 单元格最小尺寸（硬约束）
+  const MIN_CELL_W = NODE_SIZE_PERCENT + CELL_X_PADDING * 2;
+  const MIN_CELL_H = NODE_SIZE_PERCENT + LABEL_HEIGHT_PERCENT + CELL_Y_PADDING * 2 + ROW_EXTRA_GAP_FOR_LABEL;
+
+  // 按"列数搜索"选择最优网格（接近方形，且不越界）
+  const pickBestGrid = (count: number, usableW: number, usableH: number) => {
+    let best: { cols: number; rows: number; cellW: number; cellH: number } | null = null;
+
+    for (let cols = 1; cols <= count; cols++) {
+      const rows = Math.ceil(count / cols);
+      const cellW = usableW / cols;
+      const cellH = usableH / rows;
+
+      // 单元必须满足最小尺寸约束
+      if (cellW >= MIN_CELL_W && cellH >= MIN_CELL_H) {
+        if (!best) {
+          best = { cols, rows, cellW, cellH };
+        } else {
+          const curScore = Math.abs(cols - rows);
+          const bestScore = Math.abs(best.cols - best.rows);
+          // 先更方正，其次单元更宽（视觉更舒展）
+          if (curScore < bestScore || (curScore === bestScore && cellW > best.cellW)) {
+            best = { cols, rows, cellW, cellH };
+          }
+        }
+      }
+    }
+
+    // 如果一个可行解都没有，就"缩列"到满足最小宽度，"缩行"到满足最小高度
+    if (!best) {
+      let cols = Math.max(1, Math.floor(usableW / MIN_CELL_W));
+      cols = Math.min(cols, count);
+      cols = Math.max(cols, 1);
+      let rows = Math.ceil(count / cols);
+
+      // 再检查高度，如果不够，再减少行密度（增加 rows 的可用 cellH）
+      while (rows * MIN_CELL_H > usableH && cols > 1) {
+        cols -= 1;
+        rows = Math.ceil(count / cols);
+      }
+      const cellW = Math.max(MIN_CELL_W, usableW / Math.max(1, cols));
+      const cellH = Math.max(MIN_CELL_H, usableH / Math.max(1, rows));
+      best = { cols: Math.max(1, cols), rows: Math.max(1, rows), cellW, cellH };
+    }
+
+    return best!;
   };
 
-  // 预计算各部门内的均匀网格坐标（避免在 render 中重复计算）
+  // 预计算所有 Agent 的位置
   const agentPositions = useMemo(() => {
     const positions: Record<string, AgentPosition> = {};
 
-    // 针对每个部门，预先按顺序拿出该部门的 agents
+    // 部门 -> agents 列表
     const deptAgentsMap: Record<string, AIAgent[]> = {};
     agents.forEach(a => {
       (deptAgentsMap[a.department] ||= []).push(a);
@@ -603,62 +643,37 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
       const count = list.length;
       if (count === 0) return;
 
-      // 区域可用范围（加安全边距）
+      // 应用安全边距后的可用区域
       const baseX = area.x + AREA_SAFE_PADDING;
       const baseY = area.y + AREA_SAFE_PADDING;
       const usableW = Math.max(0, area.width - AREA_SAFE_PADDING * 2);
       const usableH = Math.max(0, area.height - AREA_SAFE_PADDING * 2);
 
-      // 计算网格行列
-      const { cols, rows } = computeGrid(count);
-
-      // 每格尺寸（加入节点与标签所需的空间）
-      // 水平方向：节点直径 + 水平 padding
-      const cellW = usableW / cols;
-      const minCellW = NODE_SIZE_PERCENT + CELL_X_PADDING * 2;
-      const finalCellW = Math.max(cellW, minCellW);
-
-      // 垂直方向：节点直径 + 标签高度 + 垂直 padding + 行间额外空隙
-      const cellH = usableH / rows;
-      const minCellH = NODE_SIZE_PERCENT + LABEL_HEIGHT_PERCENT + CELL_Y_PADDING * 2 + ROW_EXTRA_GAP_FOR_LABEL;
-      const finalCellH = Math.max(cellH, minCellH);
-
-      // 如果计算后的单元超出区域高度，缩放行/列（保持均匀）
-      // 做一次简单的压缩：如果总高度超限则增列减少行密度
-      let adjustedCols = cols;
-      let adjustedRows = rows;
-      let totalH = finalCellH * rows;
-      let totalW = finalCellW * cols;
-
-      // 简易自适应，避免严重溢出（可根据需要加强）
-      while (totalH > usableH && adjustedCols < count) {
-        adjustedCols += 1;
-        adjustedRows = Math.ceil(count / adjustedCols);
-        totalH = Math.max(minCellH, usableH / adjustedRows) * adjustedRows;
-        totalW = Math.max(minCellW, usableW / adjustedCols) * adjustedCols;
-      }
-
-      // 重新计算格尺寸
-      const cellWidth = Math.max(minCellW, usableW / adjustedCols);
-      const cellHeight = Math.max(minCellH, usableH / adjustedRows);
+      const { cols, rows, cellW, cellH } = pickBestGrid(count, usableW, usableH);
 
       // 将网格整体居中于部门区域
-      const gridW = cellWidth * adjustedCols;
-      const gridH = cellHeight * adjustedRows;
+      const gridW = cols * cellW;
+      const gridH = rows * cellH;
       const offsetX = baseX + (usableW - gridW) / 2;
       const offsetY = baseY + (usableH - gridH) / 2;
 
       list.forEach((agent, idx) => {
-        const r = Math.floor(idx / adjustedCols);
-        const c = idx % adjustedCols;
+        const r = Math.floor(idx / cols);
+        const c = idx % cols;
 
-        // 节点中心点坐标（居中放在单元格内，上下给标签保留空间）
-        const centerX = offsetX + c * cellWidth + cellWidth / 2;
-        const centerY = offsetY + r * cellHeight + (NODE_SIZE_PERCENT / 2) + CELL_Y_PADDING;
+        // 对于最后一行不足列的情况，计算该行实际列数并水平居中
+        const itemsInRow = r === rows - 1 ? (count - r * cols) : cols;
+        const rowStartOffset = r === rows - 1 ? (cols - itemsInRow) * cellW / 2 : 0;
 
-        // 限制在整体画布边界内（多重保险）
-        const finalX = Math.min(95, Math.max(5, centerX));
-        const finalY = Math.min(90, Math.max(10, centerY));
+        const cellLeft = offsetX + c * cellW + rowStartOffset;
+        const cellTop  = offsetY + r * cellH;
+
+        // 节点中心放在上半部分，给下面标签留足空间
+        const centerX = cellLeft + cellW / 2;
+        const centerY = cellTop + CELL_Y_PADDING + NODE_SIZE_PERCENT / 2;
+
+        const finalX = Math.min(98, Math.max(2, centerX));
+        const finalY = Math.min(95, Math.max(5, centerY));
 
         positions[agent.id] = {
           style: { left: `${finalX}%`, top: `${finalY}%` },
@@ -668,7 +683,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     });
 
     return positions;
-  }, [agents, departmentAreas, NODE_SIZE_PERCENT, LABEL_HEIGHT_PERCENT, CELL_X_PADDING, CELL_Y_PADDING, AREA_SAFE_PADDING, ROW_EXTRA_GAP_FOR_LABEL]);
+  }, [agents, departmentAreas]);
 
   const getAgentPosition = (agent: AIAgent, index: number): AgentPosition => {
     return agentPositions[agent.id] || { style: { left: '50%', top: '50%' }, coords: { x: 50, y: 50 } };
@@ -720,7 +735,18 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
           )}
         </div>
 
-        <div className="absolute left-1/2 top-[130%] -translate-x-1/2 whitespace-nowrap text-xs leading-4 font-bold text-foreground pointer-events-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] bg-black/40 rounded px-1.5 py-0.5">
+        {/* 名称标签：固定行高与省略号，避免与下一行重叠 */}
+        <div
+          className="
+            absolute left-1/2 top-[130%] -translate-x-1/2
+            whitespace-nowrap text-[12px] leading-[1.1rem] font-semibold
+            text-foreground pointer-events-none
+            bg-black/40 rounded px-2 py-[2px]
+            max-w-[8rem] overflow-hidden text-ellipsis
+            drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]
+          "
+          title={agent.name}
+        >
           {agent.name}
         </div>
 
@@ -892,9 +918,9 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                       <path
                         d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
                         stroke="hsl(var(--primary))"
-                        strokeWidth="1.5"
+                        strokeWidth="0.5"
                         fill="none"
-                        opacity={isActive ? "0.12" : "0.06"}
+                        opacity={isActive ? "0.08" : "0.04"}
                         filter={isActive ? "url(#connectionShadow)" : "none"}
                       />
 
@@ -902,13 +928,13 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                       <path
                         d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
                         stroke={isActive ? "url(#activeGradient)" : "hsl(var(--muted-foreground))"}
-                        strokeWidth="1"
+                        strokeWidth="0.3"
                         fill="none"
-                        strokeDasharray={isActive ? "0" : "4,2"}
-                        opacity={isActive ? "0.7" : "0.3"}
+                        strokeDasharray={isActive ? "0" : "2,1"}
+                        opacity={isActive ? "0.5" : "0.2"}
                         className={isActive ? "animate-pulse" : ""}
                         style={{
-                          filter: isActive ? 'drop-shadow(0 0 2px hsl(var(--primary)))' : 'none'
+                          filter: isActive ? 'drop-shadow(0 0 1px hsl(var(--primary)))' : 'none'
                         }}
                       />
 
@@ -918,13 +944,13 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                           <path
                             d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
                             stroke="url(#dataFlowGradient)"
-                            strokeWidth="1.2"
+                            strokeWidth="0.4"
                             fill="none"
-                            opacity="0.5"
+                            opacity="0.3"
                           />
 
                           {/* Data packet animation */}
-                          <circle r="1" fill="hsl(var(--tech-green))" opacity="0.7">
+                          <circle r="0.3" fill="hsl(var(--tech-green))" opacity="0.6">
                             <animateMotion dur="2s" repeatCount="indefinite">
                               <mpath href={`#path-${prevStep.agentId}-${step.agentId}`} />
                             </animateMotion>
@@ -946,17 +972,17 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                           <circle
                             cx={startX}
                             cy={startY}
-                            r="0.6"
+                            r="0.2"
                             fill="hsl(var(--tech-green))"
-                            opacity="0.6"
+                            opacity="0.4"
                             className="animate-pulse"
                           />
                           <circle
                             cx={endX}
                             cy={endY}
-                            r="0.6"
+                            r="0.2"
                             fill={isCompleted ? "hsl(var(--tech-green))" : "hsl(var(--primary))"}
-                            opacity="0.6"
+                            opacity="0.4"
                             className={isCompleted ? "" : "animate-pulse"}
                           />
                         </>
