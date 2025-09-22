@@ -226,25 +226,47 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     }
   ];
 
-  // Department areas for Agent positioning - 规律的分布但更大间距（无边框）
-  const departmentAreas = {
-    tech: { x: 5, y: 8, width: 28, height: 35 },          // 左上
-    product: { x: 36, y: 8, width: 28, height: 35 },      // 中上
-    marketing: { x: 67, y: 8, width: 28, height: 35 },    // 右上
-    legal: { x: 5, y: 48, width: 28, height: 35 },        // 左下
-    finance: { x: 36, y: 48, width: 28, height: 35 },     // 中下
-    hr: { x: 67, y: 48, width: 28, height: 35 },          // 右下
+  // Circular layout configuration for Agent positioning
+  const circularLayout = {
+    centerX: 50,  // Center X coordinate (%)
+    centerY: 45,  // Center Y coordinate (%)
+    baseRadius: 30, // Base radius for agent distribution (%)
+    departments: {
+      tech: { angle: 30, agents: 12, color: 'tech-blue', radius: 30 },
+      product: { angle: 90, agents: 8, color: 'purple', radius: 32 },
+      marketing: { angle: 150, agents: 10, color: 'tech-green', radius: 34 },
+      legal: { angle: 210, agents: 6, color: 'orange', radius: 28 },
+      finance: { angle: 270, agents: 6, color: 'yellow', radius: 26 },
+      hr: { angle: 330, agents: 8, color: 'pink', radius: 36 },
+    }
   };
 
-  // Department labels
-  const departmentLabels = [
-    { id: 'tech' as const, label: '🔧 技术部', subtitle: 'Technology', x: 19, y: 8 },
-    { id: 'product' as const, label: '📊 产品部', subtitle: 'Product', x: 50, y: 8 },
-    { id: 'marketing' as const, label: '📈 市场部', subtitle: 'Marketing', x: 81, y: 8 },
-    { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 19, y: 48 },
-    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 81, y: 48 },
-    { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 50, y: 48 },
-  ];
+  // Department labels positioned around the circular layout
+  const departmentLabels = useMemo(() => {
+    return Object.entries(circularLayout.departments).map(([deptId, config]) => {
+      const labelRadius = config.radius + 8; // Position labels outside the agent circle
+      const angleRad = (config.angle * Math.PI) / 180;
+      const x = circularLayout.centerX + labelRadius * Math.cos(angleRad);
+      const y = circularLayout.centerY + labelRadius * Math.sin(angleRad);
+
+      const labels = {
+        tech: { label: '🔧 技术部', subtitle: 'Technology' },
+        product: { label: '📊 产品部', subtitle: 'Product' },
+        marketing: { label: '📈 市场部', subtitle: 'Marketing' },
+        legal: { label: '⚖️ 法务部', subtitle: 'Legal' },
+        hr: { label: '👥 人力部', subtitle: 'HR' },
+        finance: { label: '💰 财务部', subtitle: 'Finance' }
+      };
+
+      return {
+        id: deptId as keyof typeof labels,
+        label: labels[deptId as keyof typeof labels]?.label || deptId,
+        subtitle: labels[deptId as keyof typeof labels]?.subtitle || deptId,
+        x: Math.max(5, Math.min(95, x)),
+        y: Math.max(8, Math.min(85, y))
+      };
+    });
+  }, [circularLayout]);
 
   const handleTaskHover = (task: TaskCard | null) => {
     if (!executionStarted && task) {
@@ -524,13 +546,13 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     return ((Math.abs(hash) + index) % 1000) / 1000;
   };
 
-  // Improved Agent positioning with stable pseudo-random distribution
+  // Circular Agent positioning with uniform distribution around center
   const agentPositions = useMemo(() => {
     const positions: { [key: string]: AgentPosition } = {};
 
     agents.forEach((agent, globalIndex) => {
-      const area = departmentAreas[agent.department];
-      if (!area) {
+      const deptConfig = circularLayout.departments[agent.department];
+      if (!deptConfig) {
         positions[agent.id] = { style: { left: '50%', top: '50%' }, coords: { x: 50, y: 50 } };
         return;
       }
@@ -539,43 +561,46 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
       const agentIndex = departmentAgents.indexOf(agent);
       const totalAgents = departmentAgents.length;
 
-      // Regular grid distribution within department area
-      const cols = Math.ceil(Math.sqrt(totalAgents));
-      const rows = Math.ceil(totalAgents / cols);
-      const row = Math.floor(agentIndex / cols);
-      const col = agentIndex % cols;
+      // Calculate angle for this specific agent within the department sector
+      const sectorAngle = 50; // Each department gets a 50-degree sector
+      const startAngle = deptConfig.angle - sectorAngle / 2;
 
-      // Calculate actual columns in this row (for better edge distribution)
-      const actualColsInRow = (row === rows - 1) ? (totalAgents % cols || cols) : cols;
+      // Distribute agents across multiple concentric circles if needed
+      const agentsPerCircle = 6; // Maximum agents per circle
+      const circleIndex = Math.floor(agentIndex / agentsPerCircle);
+      const agentInCircle = agentIndex % agentsPerCircle;
+      const agentsInThisCircle = Math.min(agentsPerCircle, totalAgents - circleIndex * agentsPerCircle);
 
-      // Calculate position with proper spacing
-      const cellWidth = area.width / cols;
-      const cellHeight = area.height / rows;
+      // Calculate radius (different circles for same department)
+      const radius = deptConfig.radius + circleIndex * 8; // Spread circles outward
 
-      // Get small random offset for visual variety
-      const rand1 = getStableRandom(agent.id, 1);
-      const rand2 = getStableRandom(agent.id, 2);
-      const offsetX = (rand1 - 0.5) * cellWidth * 0.08; // Reduced offset for cleaner look
-      const offsetY = (rand2 - 0.5) * cellHeight * 0.08;
-
-      // Adjust x position for better column distribution (center the last row)
-      let x;
-      if (row === rows - 1 && actualColsInRow < cols) {
-        // Center the last row if it has fewer columns
-        const startOffset = (cols - actualColsInRow) * cellWidth * 0.5;
-        x = area.x + startOffset + cellWidth * (col + 0.5) + offsetX;
+      // Calculate angle within the sector for this agent
+      let angle;
+      if (agentsInThisCircle === 1) {
+        // Single agent goes to center of sector
+        angle = deptConfig.angle;
       } else {
-        x = area.x + cellWidth * (col + 0.5) + offsetX;
+        // Distribute multiple agents evenly within sector
+        const angleStep = sectorAngle / (agentsInThisCircle + 1);
+        angle = startAngle + angleStep * (agentInCircle + 1);
       }
 
-      // Calculate y position with proper row spacing to avoid vertical overlaps
-      const baseRowHeight = area.height / rows;
-      const verticalSpacing = baseRowHeight * 0.6; // Extra space between rows
-      let y = area.y + 5 + baseRowHeight * row + verticalSpacing * row + baseRowHeight * 0.4 + offsetY;
+      // Convert to radians
+      const angleRad = (angle * Math.PI) / 180;
+
+      // Calculate final position
+      const x = circularLayout.centerX + radius * Math.cos(angleRad);
+      const y = circularLayout.centerY + radius * Math.sin(angleRad);
+
+      // Add small random offset for visual variety
+      const rand1 = getStableRandom(agent.id, 1);
+      const rand2 = getStableRandom(agent.id, 2);
+      const offsetX = (rand1 - 0.5) * 3; // Small offset
+      const offsetY = (rand2 - 0.5) * 3;
 
       // Ensure within bounds
-      const finalX = Math.max(5, Math.min(95, x));
-      const finalY = Math.max(10, Math.min(90, y));
+      const finalX = Math.max(8, Math.min(92, x + offsetX));
+      const finalY = Math.max(12, Math.min(88, y + offsetY));
 
       positions[agent.id] = {
         style: { left: `${finalX}%`, top: `${finalY}%` },
@@ -584,7 +609,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     });
 
     return positions;
-  }, [agents]);
+  }, [agents, circularLayout]);
 
   const getAgentPosition = (agent: AIAgent, index: number): AgentPosition => {
     return agentPositions[agent.id] || { style: { left: '50%', top: '50%' }, coords: { x: 50, y: 50 } };
@@ -672,7 +697,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                 AI数字员工协作平台
               </h1>
               <p className="text-lg text-muted-foreground font-medium">
-                50+ 专业数字员工 · 智能协作演示
+                100+ 专业数字员工 · 智能协作演示
               </p>
             </div>
 
@@ -732,6 +757,33 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
             {/* Connection Lines between Agents */}
             {selectedTask && executionStarted && (
               <svg className="absolute inset-0 w-full h-full pointer-events-none z-20">
+                <defs>
+                  {/* Gradient for active connections */}
+                  <linearGradient id="activeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.8" />
+                    <stop offset="50%" stopColor="hsl(var(--tech-blue))" stopOpacity="1" />
+                    <stop offset="100%" stopColor="hsl(var(--tech-green))" stopOpacity="0.8" />
+                  </linearGradient>
+
+                  {/* Animated gradient for data flow */}
+                  <linearGradient id="dataFlowGradient">
+                    <stop offset="0%" stopColor="transparent" />
+                    <stop offset="30%" stopColor="hsl(var(--tech-blue))" stopOpacity="0.8">
+                      <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
+                    </stop>
+                    <stop offset="70%" stopColor="hsl(var(--primary))" stopOpacity="1">
+                      <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite" begin="0.3s" />
+                    </stop>
+                    <stop offset="100%" stopColor="transparent" />
+                    <animateTransform attributeName="gradientTransform" type="translate" values="-100 0;100 0;-100 0" dur="2s" repeatCount="indefinite" />
+                  </linearGradient>
+
+                  {/* Drop shadow filter */}
+                  <filter id="connectionShadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="hsl(var(--primary))" floodOpacity="0.3"/>
+                  </filter>
+                </defs>
+
                 {selectedTask.workflow.map((step, index) => {
                   if (index === 0) return null;
 
@@ -744,21 +796,107 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                   const prevPos = getAgentPosition(prevAgent, agents.indexOf(prevAgent));
                   const currPos = getAgentPosition(currAgent, agents.indexOf(currAgent));
 
-                  const isActive = currentStepIndex === index || completedAgents.includes(prevStep.agentId);
+                  // Calculate connection points at agent edges instead of centers
+                  const dx = currPos.coords.x - prevPos.coords.x;
+                  const dy = currPos.coords.y - prevPos.coords.y;
+                  const distance = Math.sqrt(dx * dx + dy * dy);
+                  const unitX = dx / distance;
+                  const unitY = dy / distance;
+
+                  // Offset from agent center to edge (agent radius is about 4% of container)
+                  const agentRadius = 4;
+                  const startX = prevPos.coords.x + unitX * agentRadius;
+                  const startY = prevPos.coords.y + unitY * agentRadius;
+                  const endX = currPos.coords.x - unitX * agentRadius;
+                  const endY = currPos.coords.y - unitY * agentRadius;
+
+                  // Create curved path for better visual appeal
+                  const midX = (startX + endX) / 2;
+                  const midY = (startY + endY) / 2;
+                  const controlOffset = 8; // Curve control point offset
+                  const perpX = -unitY * controlOffset;
+                  const perpY = unitX * controlOffset;
+
+                  const isActive = currentStepIndex >= index;
+                  const isCurrentlyTransmitting = currentStepIndex === index;
+                  const isCompleted = completedAgents.includes(prevStep.agentId);
 
                   return (
-                    <line
-                      key={`${prevStep.agentId}-${step.agentId}`}
-                      x1={`${prevPos.coords.x}%`}
-                      y1={`${prevPos.coords.y}%`}
-                      x2={`${currPos.coords.x}%`}
-                      y2={`${currPos.coords.y}%`}
-                      stroke={isActive ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"}
-                      strokeWidth="2"
-                      strokeDasharray={isActive ? "0" : "5,5"}
-                      opacity={isActive ? "0.8" : "0.3"}
-                      className={isActive ? "animate-pulse" : ""}
-                    />
+                    <g key={`${prevStep.agentId}-${step.agentId}`}>
+                      {/* Background path for glow effect */}
+                      <path
+                        d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
+                        stroke="hsl(var(--primary))"
+                        strokeWidth="6"
+                        fill="none"
+                        opacity={isActive ? "0.2" : "0.1"}
+                        filter={isActive ? "url(#connectionShadow)" : "none"}
+                      />
+
+                      {/* Main connection path */}
+                      <path
+                        d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
+                        stroke={isActive ? "url(#activeGradient)" : "hsl(var(--muted-foreground))"}
+                        strokeWidth="3"
+                        fill="none"
+                        strokeDasharray={isActive ? "0" : "8,4"}
+                        opacity={isActive ? "0.9" : "0.4"}
+                        className={isActive ? "animate-pulse" : ""}
+                        style={{
+                          filter: isActive ? 'drop-shadow(0 0 8px hsl(var(--primary)))' : 'none'
+                        }}
+                      />
+
+                      {/* Data flow animation for currently transmitting connections */}
+                      {isCurrentlyTransmitting && (
+                        <>
+                          <path
+                            d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
+                            stroke="url(#dataFlowGradient)"
+                            strokeWidth="4"
+                            fill="none"
+                            opacity="0.8"
+                          />
+
+                          {/* Data packet animation */}
+                          <circle r="3" fill="hsl(var(--tech-green))" opacity="0.9">
+                            <animateMotion dur="2s" repeatCount="indefinite">
+                              <mpath href={`#path-${prevStep.agentId}-${step.agentId}`} />
+                            </animateMotion>
+                            <animate attributeName="opacity" values="0;1;1;0" dur="2s" repeatCount="indefinite" />
+                          </circle>
+
+                          {/* Hidden path for animation reference */}
+                          <path
+                            id={`path-${prevStep.agentId}-${step.agentId}`}
+                            d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
+                            opacity="0"
+                          />
+                        </>
+                      )}
+
+                      {/* Connection endpoint indicators */}
+                      {isActive && (
+                        <>
+                          <circle
+                            cx={startX}
+                            cy={startY}
+                            r="2"
+                            fill="hsl(var(--tech-green))"
+                            opacity="0.8"
+                            className="animate-pulse"
+                          />
+                          <circle
+                            cx={endX}
+                            cy={endY}
+                            r="2"
+                            fill={isCompleted ? "hsl(var(--tech-green))" : "hsl(var(--primary))"}
+                            opacity="0.8"
+                            className={isCompleted ? "" : "animate-pulse"}
+                          />
+                        </>
+                      )}
+                    </g>
                   );
                 })}
               </svg>
@@ -768,8 +906,8 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
             <div
               className="absolute rounded-2xl border-4 border-primary bg-primary/20 p-4 transition-all duration-700 transform flex flex-col items-center justify-center text-center hover:scale-110 hover:shadow-[0_0_60px_hsl(var(--primary)/0.8)] w-20 h-20 z-50 animate-pulse-glow"
               style={{
-                left: '50%',
-                top: '38%',
+                left: `${circularLayout.centerX}%`,
+                top: `${circularLayout.centerY}%`,
                 transform: 'translate(-50%, -50%)'
               }}
             >
@@ -984,15 +1122,15 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                 <div className="text-tech-blue/60 animate-pulse">▶ AWAITING TASK INITIALIZATION...</div>
               ) : (
                 executionLogs.map((log, index) => (
-                <div
-                  key={index}
-                  className="text-green-400/90 hover:text-green-400 transition-colors cursor-default"
-                  style={{ animationDelay: `${index * 0.02}s` }}
-                >
-                  ▶ {log}
-                </div>
-              ))
-            )}
+                  <div
+                    key={index}
+                    className="text-green-400/90 hover:text-green-400 transition-colors cursor-default"
+                    style={{ animationDelay: `${index * 0.02}s` }}
+                  >
+                    ▶ {log}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
