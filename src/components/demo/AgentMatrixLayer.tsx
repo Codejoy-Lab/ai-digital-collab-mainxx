@@ -234,24 +234,24 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     height: 8  // Exclusion zone height (%)
   };
 
-  // Department areas for Agent positioning - avoiding center
+  // Department areas for Agent positioning - avoiding center with proper spacing
   const departmentAreas = {
-    tech: { x: 5, y: 8, width: 20, height: 25 },          // 左上
-    product: { x: 75, y: 8, width: 20, height: 25 },      // 右上
-    marketing: { x: 5, y: 65, width: 20, height: 25 },    // 左下
-    legal: { x: 75, y: 65, width: 20, height: 25 },       // 右下
-    finance: { x: 30, y: 8, width: 20, height: 15 },      // 中上
-    hr: { x: 30, y: 75, width: 20, height: 15 },          // 中下
+    tech: { x: 2, y: 5, width: 25, height: 30 },          // 左上 - 技术部12个agent，需要更大空间
+    product: { x: 73, y: 5, width: 25, height: 30 },      // 右上 - 产品部8个agent
+    marketing: { x: 2, y: 65, width: 25, height: 30 },    // 左下 - 市场部10个agent，需要较大空间
+    legal: { x: 73, y: 65, width: 25, height: 30 },       // 右下 - 法务部6个agent
+    finance: { x: 32, y: 5, width: 18, height: 20 },      // 中上 - 财务部6个agent
+    hr: { x: 50, y: 78, width: 25, height: 17 },          // 中下 - 人力部8个agent，调整位置避免与中央重叠
   };
 
   // Department labels
   const departmentLabels = [
-    { id: 'tech' as const, label: '🔧 技术部', subtitle: 'Technology', x: 15, y: 8 },
-    { id: 'product' as const, label: '📊 产品部', subtitle: 'Product', x: 85, y: 8 },
+    { id: 'tech' as const, label: '🔧 技术部', subtitle: 'Technology', x: 15, y: 5 },
+    { id: 'product' as const, label: '📊 产品部', subtitle: 'Product', x: 85, y: 5 },
     { id: 'marketing' as const, label: '📈 市场部', subtitle: 'Marketing', x: 15, y: 65 },
     { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 85, y: 65 },
-    { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 40, y: 8 },
-    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 40, y: 75 },
+    { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 41, y: 5 },
+    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 62, y: 78 },
   ];
 
   const handleTaskHover = (task: TaskCard | null) => {
@@ -290,7 +290,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
         ws.onopen = () => {
           console.log('✅ WebSocket连接成功!');
           setWsConnected(true);
-          setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 📡 已连接到后端服务`, ...prev]);
+          // 移除后端连接日志
         };
 
         ws.onmessage = (event) => {
@@ -301,13 +301,13 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
         ws.onerror = (error) => {
           console.error('❌ WebSocket连接错误:', error);
           setWsConnected(false);
-          setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ❌ 后端连接失败`, ...prev]);
+          // 移除后端连接失败日志
         };
 
         ws.onclose = () => {
           console.log('⚠️ WebSocket连接已关闭');
           setWsConnected(false);
-          setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ⚠️ 后端连接已断开`, ...prev]);
+          // 移除后端连接断开日志
           // 重连
           setTimeout(() => {
             console.log('正在尝试重新连接...');
@@ -319,7 +319,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
       } catch (error) {
         console.error('❌ 创建WebSocket失败:', error);
         setWsConnected(false);
-        setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ❌ 无法创建WebSocket连接`, ...prev]);
+        // 移除WebSocket创建失败日志
       }
     };
 
@@ -421,10 +421,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
       console.log('Sending WebSocket message:', message);
       wsRef.current.send(JSON.stringify(message));
 
-      setExecutionLogs(prev => [
-        `[${new Date().toLocaleTimeString()}] 📡 已发送到后端执行`,
-        ...prev.slice(0, 20)
-      ]);
+      // 移除后端执行日志
     } catch (error) {
       console.error('Failed to send WebSocket message:', error);
       startTaskExecution(task); // Fallback to simulation
@@ -556,30 +553,41 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
       // Calculate actual columns in this row (for better edge distribution)
       const actualColsInRow = (row === rows - 1) ? (totalAgents % cols || cols) : cols;
 
-      // Calculate position with proper spacing
-      const cellWidth = area.width / cols;
-      const cellHeight = area.height / rows;
+      // Calculate position with enhanced spacing to prevent overlap
+      const padding = 0.15; // 15% padding within each area
+      const usableWidth = area.width * (1 - padding);
+      const usableHeight = area.height * (1 - padding);
+
+      const cellWidth = usableWidth / cols;
+      const cellHeight = usableHeight / rows;
+
+      // Minimum spacing between agents (in percentage)
+      const minSpacing = 1.2;
+      const actualCellWidth = Math.max(cellWidth, minSpacing * 1.5);
+      const actualCellHeight = Math.max(cellHeight, minSpacing * 1.5);
 
       // Get small random offset for visual variety
       const rand1 = getStableRandom(agent.id, 1);
       const rand2 = getStableRandom(agent.id, 2);
-      const offsetX = (rand1 - 0.5) * cellWidth * 0.08;
-      const offsetY = (rand2 - 0.5) * cellHeight * 0.08;
+      const offsetX = (rand1 - 0.5) * actualCellWidth * 0.05; // Reduced random offset
+      const offsetY = (rand2 - 0.5) * actualCellHeight * 0.05;
+
+      // Calculate base position with padding
+      const baseX = area.x + (area.width * padding * 0.5);
+      const baseY = area.y + (area.height * padding * 0.5);
 
       // Adjust x position for better column distribution (center the last row)
       let x;
       if (row === rows - 1 && actualColsInRow < cols) {
         // Center the last row if it has fewer columns
-        const startOffset = (cols - actualColsInRow) * cellWidth * 0.5;
-        x = area.x + startOffset + cellWidth * (col + 0.5) + offsetX;
+        const startOffset = (cols - actualColsInRow) * actualCellWidth * 0.5;
+        x = baseX + startOffset + actualCellWidth * (col + 0.5) + offsetX;
       } else {
-        x = area.x + cellWidth * (col + 0.5) + offsetX;
+        x = baseX + actualCellWidth * (col + 0.5) + offsetX;
       }
 
-      // Calculate y position with proper row spacing
-      const baseRowHeight = area.height / rows;
-      const verticalSpacing = baseRowHeight * 0.6;
-      let y = area.y + 5 + baseRowHeight * row + verticalSpacing * row + baseRowHeight * 0.4 + offsetY;
+      // Calculate y position with enhanced spacing
+      let y = baseY + actualCellHeight * (row + 0.5) + offsetY;
 
       // Ensure within bounds and avoid center dispatcher
       const finalX = Math.max(5, Math.min(95, x));
@@ -813,9 +821,9 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                       <path
                         d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
                         stroke="hsl(var(--primary))"
-                        strokeWidth="6"
+                        strokeWidth="3"
                         fill="none"
-                        opacity={isActive ? "0.2" : "0.1"}
+                        opacity={isActive ? "0.15" : "0.08"}
                         filter={isActive ? "url(#connectionShadow)" : "none"}
                       />
 
@@ -823,13 +831,13 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                       <path
                         d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
                         stroke={isActive ? "url(#activeGradient)" : "hsl(var(--muted-foreground))"}
-                        strokeWidth="3"
+                        strokeWidth="1.5"
                         fill="none"
-                        strokeDasharray={isActive ? "0" : "8,4"}
-                        opacity={isActive ? "0.9" : "0.4"}
+                        strokeDasharray={isActive ? "0" : "6,3"}
+                        opacity={isActive ? "0.8" : "0.35"}
                         className={isActive ? "animate-pulse" : ""}
                         style={{
-                          filter: isActive ? 'drop-shadow(0 0 8px hsl(var(--primary)))' : 'none'
+                          filter: isActive ? 'drop-shadow(0 0 4px hsl(var(--primary)))' : 'none'
                         }}
                       />
 
@@ -839,13 +847,13 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                           <path
                             d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
                             stroke="url(#dataFlowGradient)"
-                            strokeWidth="4"
+                            strokeWidth="2"
                             fill="none"
-                            opacity="0.8"
+                            opacity="0.6"
                           />
 
                           {/* Data packet animation */}
-                          <circle r="3" fill="hsl(var(--tech-green))" opacity="0.9">
+                          <circle r="1.5" fill="hsl(var(--tech-green))" opacity="0.8">
                             <animateMotion dur="2s" repeatCount="indefinite">
                               <mpath href={`#path-${prevStep.agentId}-${step.agentId}`} />
                             </animateMotion>
@@ -867,17 +875,17 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                           <circle
                             cx={startX}
                             cy={startY}
-                            r="2"
+                            r="1"
                             fill="hsl(var(--tech-green))"
-                            opacity="0.8"
+                            opacity="0.7"
                             className="animate-pulse"
                           />
                           <circle
                             cx={endX}
                             cy={endY}
-                            r="2"
+                            r="1"
                             fill={isCompleted ? "hsl(var(--tech-green))" : "hsl(var(--primary))"}
-                            opacity="0.8"
+                            opacity="0.7"
                             className={isCompleted ? "" : "animate-pulse"}
                           />
                         </>
