@@ -226,47 +226,33 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     }
   ];
 
-  // Circular layout configuration for Agent positioning
-  const circularLayout = {
-    centerX: 50,  // Center X coordinate (%)
-    centerY: 45,  // Center Y coordinate (%)
-    baseRadius: 30, // Base radius for agent distribution (%)
-    departments: {
-      tech: { angle: 30, agents: 12, color: 'tech-blue', radius: 30 },
-      product: { angle: 90, agents: 8, color: 'purple', radius: 32 },
-      marketing: { angle: 150, agents: 10, color: 'tech-green', radius: 34 },
-      legal: { angle: 210, agents: 6, color: 'orange', radius: 28 },
-      finance: { angle: 270, agents: 6, color: 'yellow', radius: 26 },
-      hr: { angle: 330, agents: 8, color: 'pink', radius: 36 },
-    }
+  // Central dispatcher position
+  const centralDispatcher = {
+    x: 50, // Center X coordinate (%)
+    y: 45, // Center Y coordinate (%)
+    width: 8, // Exclusion zone width (%)
+    height: 8  // Exclusion zone height (%)
   };
 
-  // Department labels positioned around the circular layout
-  const departmentLabels = useMemo(() => {
-    return Object.entries(circularLayout.departments).map(([deptId, config]) => {
-      const labelRadius = config.radius + 8; // Position labels outside the agent circle
-      const angleRad = (config.angle * Math.PI) / 180;
-      const x = circularLayout.centerX + labelRadius * Math.cos(angleRad);
-      const y = circularLayout.centerY + labelRadius * Math.sin(angleRad);
+  // Department areas for Agent positioning - avoiding center
+  const departmentAreas = {
+    tech: { x: 5, y: 8, width: 20, height: 25 },          // 左上
+    product: { x: 75, y: 8, width: 20, height: 25 },      // 右上
+    marketing: { x: 5, y: 65, width: 20, height: 25 },    // 左下
+    legal: { x: 75, y: 65, width: 20, height: 25 },       // 右下
+    finance: { x: 30, y: 8, width: 20, height: 15 },      // 中上
+    hr: { x: 30, y: 75, width: 20, height: 15 },          // 中下
+  };
 
-      const labels = {
-        tech: { label: '🔧 技术部', subtitle: 'Technology' },
-        product: { label: '📊 产品部', subtitle: 'Product' },
-        marketing: { label: '📈 市场部', subtitle: 'Marketing' },
-        legal: { label: '⚖️ 法务部', subtitle: 'Legal' },
-        hr: { label: '👥 人力部', subtitle: 'HR' },
-        finance: { label: '💰 财务部', subtitle: 'Finance' }
-      };
-
-      return {
-        id: deptId as keyof typeof labels,
-        label: labels[deptId as keyof typeof labels]?.label || deptId,
-        subtitle: labels[deptId as keyof typeof labels]?.subtitle || deptId,
-        x: Math.max(5, Math.min(95, x)),
-        y: Math.max(8, Math.min(85, y))
-      };
-    });
-  }, [circularLayout]);
+  // Department labels
+  const departmentLabels = [
+    { id: 'tech' as const, label: '🔧 技术部', subtitle: 'Technology', x: 15, y: 8 },
+    { id: 'product' as const, label: '📊 产品部', subtitle: 'Product', x: 85, y: 8 },
+    { id: 'marketing' as const, label: '📈 市场部', subtitle: 'Marketing', x: 15, y: 65 },
+    { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 85, y: 65 },
+    { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 40, y: 8 },
+    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 40, y: 75 },
+  ];
 
   const handleTaskHover = (task: TaskCard | null) => {
     if (!executionStarted && task) {
@@ -546,13 +532,13 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     return ((Math.abs(hash) + index) % 1000) / 1000;
   };
 
-  // Circular Agent positioning with uniform distribution around center
+  // Rectangular Agent positioning avoiding center dispatcher
   const agentPositions = useMemo(() => {
     const positions: { [key: string]: AgentPosition } = {};
 
     agents.forEach((agent, globalIndex) => {
-      const deptConfig = circularLayout.departments[agent.department];
-      if (!deptConfig) {
+      const area = departmentAreas[agent.department];
+      if (!area) {
         positions[agent.id] = { style: { left: '50%', top: '50%' }, coords: { x: 50, y: 50 } };
         return;
       }
@@ -561,46 +547,43 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
       const agentIndex = departmentAgents.indexOf(agent);
       const totalAgents = departmentAgents.length;
 
-      // Calculate angle for this specific agent within the department sector
-      const sectorAngle = 50; // Each department gets a 50-degree sector
-      const startAngle = deptConfig.angle - sectorAngle / 2;
+      // Regular grid distribution within department area
+      const cols = Math.ceil(Math.sqrt(totalAgents));
+      const rows = Math.ceil(totalAgents / cols);
+      const row = Math.floor(agentIndex / cols);
+      const col = agentIndex % cols;
 
-      // Distribute agents across multiple concentric circles if needed
-      const agentsPerCircle = 6; // Maximum agents per circle
-      const circleIndex = Math.floor(agentIndex / agentsPerCircle);
-      const agentInCircle = agentIndex % agentsPerCircle;
-      const agentsInThisCircle = Math.min(agentsPerCircle, totalAgents - circleIndex * agentsPerCircle);
+      // Calculate actual columns in this row (for better edge distribution)
+      const actualColsInRow = (row === rows - 1) ? (totalAgents % cols || cols) : cols;
 
-      // Calculate radius (different circles for same department)
-      const radius = deptConfig.radius + circleIndex * 8; // Spread circles outward
+      // Calculate position with proper spacing
+      const cellWidth = area.width / cols;
+      const cellHeight = area.height / rows;
 
-      // Calculate angle within the sector for this agent
-      let angle;
-      if (agentsInThisCircle === 1) {
-        // Single agent goes to center of sector
-        angle = deptConfig.angle;
-      } else {
-        // Distribute multiple agents evenly within sector
-        const angleStep = sectorAngle / (agentsInThisCircle + 1);
-        angle = startAngle + angleStep * (agentInCircle + 1);
-      }
-
-      // Convert to radians
-      const angleRad = (angle * Math.PI) / 180;
-
-      // Calculate final position
-      const x = circularLayout.centerX + radius * Math.cos(angleRad);
-      const y = circularLayout.centerY + radius * Math.sin(angleRad);
-
-      // Add small random offset for visual variety
+      // Get small random offset for visual variety
       const rand1 = getStableRandom(agent.id, 1);
       const rand2 = getStableRandom(agent.id, 2);
-      const offsetX = (rand1 - 0.5) * 3; // Small offset
-      const offsetY = (rand2 - 0.5) * 3;
+      const offsetX = (rand1 - 0.5) * cellWidth * 0.08;
+      const offsetY = (rand2 - 0.5) * cellHeight * 0.08;
 
-      // Ensure within bounds
-      const finalX = Math.max(8, Math.min(92, x + offsetX));
-      const finalY = Math.max(12, Math.min(88, y + offsetY));
+      // Adjust x position for better column distribution (center the last row)
+      let x;
+      if (row === rows - 1 && actualColsInRow < cols) {
+        // Center the last row if it has fewer columns
+        const startOffset = (cols - actualColsInRow) * cellWidth * 0.5;
+        x = area.x + startOffset + cellWidth * (col + 0.5) + offsetX;
+      } else {
+        x = area.x + cellWidth * (col + 0.5) + offsetX;
+      }
+
+      // Calculate y position with proper row spacing
+      const baseRowHeight = area.height / rows;
+      const verticalSpacing = baseRowHeight * 0.6;
+      let y = area.y + 5 + baseRowHeight * row + verticalSpacing * row + baseRowHeight * 0.4 + offsetY;
+
+      // Ensure within bounds and avoid center dispatcher
+      const finalX = Math.max(5, Math.min(95, x));
+      const finalY = Math.max(10, Math.min(90, y));
 
       positions[agent.id] = {
         style: { left: `${finalX}%`, top: `${finalY}%` },
@@ -609,7 +592,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     });
 
     return positions;
-  }, [agents, circularLayout]);
+  }, [agents]);
 
   const getAgentPosition = (agent: AIAgent, index: number): AgentPosition => {
     return agentPositions[agent.id] || { style: { left: '50%', top: '50%' }, coords: { x: 50, y: 50 } };
@@ -756,7 +739,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
 
             {/* Connection Lines between Agents */}
             {selectedTask && executionStarted && (
-              <svg className="absolute inset-0 w-full h-full pointer-events-none z-20">
+              <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <defs>
                   {/* Gradient for active connections */}
                   <linearGradient id="activeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -800,11 +783,14 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                   const dx = currPos.coords.x - prevPos.coords.x;
                   const dy = currPos.coords.y - prevPos.coords.y;
                   const distance = Math.sqrt(dx * dx + dy * dy);
+
+                  if (distance === 0) return null; // Avoid division by zero
+
                   const unitX = dx / distance;
                   const unitY = dy / distance;
 
-                  // Offset from agent center to edge (agent radius is about 4% of container)
-                  const agentRadius = 4;
+                  // Agent visual radius in percentage units (agents are w-16 h-16, approximately 4% of container)
+                  const agentRadius = 3;
                   const startX = prevPos.coords.x + unitX * agentRadius;
                   const startY = prevPos.coords.y + unitY * agentRadius;
                   const endX = currPos.coords.x - unitX * agentRadius;
@@ -813,7 +799,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                   // Create curved path for better visual appeal
                   const midX = (startX + endX) / 2;
                   const midY = (startY + endY) / 2;
-                  const controlOffset = 8; // Curve control point offset
+                  const controlOffset = Math.min(8, distance / 4); // Adaptive curve based on distance
                   const perpX = -unitY * controlOffset;
                   const perpY = unitX * controlOffset;
 
@@ -906,8 +892,8 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
             <div
               className="absolute rounded-2xl border-4 border-primary bg-primary/20 p-4 transition-all duration-700 transform flex flex-col items-center justify-center text-center hover:scale-110 hover:shadow-[0_0_60px_hsl(var(--primary)/0.8)] w-20 h-20 z-50 animate-pulse-glow"
               style={{
-                left: `${circularLayout.centerX}%`,
-                top: `${circularLayout.centerY}%`,
+                left: `${centralDispatcher.x}%`,
+                top: `${centralDispatcher.y}%`,
                 transform: 'translate(-50%, -50%)'
               }}
             >
