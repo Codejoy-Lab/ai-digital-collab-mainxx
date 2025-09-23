@@ -243,7 +243,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     marketing: { x: 1, y: 62, width: 30, height: 32 },    // 左下 - 市场部10个agent，5x2或似方形布局
     legal: { x: 70, y: 68, width: 28, height: 28 },       // 右下 - 法务部6个agent，3x2或方形布局
     finance: { x: 34, y: 3, width: 28, height: 20 },      // 中上 - 财务部6个agent，强制水平布局
-    hr: { x: 40, y: 73, width: 35, height: 22 },          // 中下 - 人力部8个agent，大幅加宽避免竖列
+    hr: { x: 35, y: 68, width: 35, height: 26 },          // 中下 - 人力部8个agent，调整Y位置与法务部对齐
   };
 
   // Department labels - positioned at top-left corner of each department area
@@ -253,7 +253,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     { id: 'marketing' as const, label: '📈 市场部', subtitle: 'Marketing', x: 2, y: 60 },
     { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 72, y: 63 },
     { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 34, y: 1 },
-    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 49, y: 73 },
+    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 37, y: 63 },
   ];
 
   const handleTaskHover = (task: TaskCard | null) => {
