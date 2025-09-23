@@ -246,14 +246,14 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     hr: { x: 40, y: 73, width: 35, height: 22 },          // 中下 - 人力部8个agent，大幅加宽避免竖列
   };
 
-  // Department labels - adjusted for optimized positions
+  // Department labels - positioned at top-left corner of each department area
   const departmentLabels = [
-    { id: 'tech' as const, label: '🔧 技术部', subtitle: 'Technology', x: 15, y: 3 },
-    { id: 'product' as const, label: '📊 产品部', subtitle: 'Product', x: 83, y: 3 },
-    { id: 'marketing' as const, label: '📈 市场部', subtitle: 'Marketing', x: 15, y: 62 },
-    { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 84, y: 65 },
-    { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 48, y: 3 },
-    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 61, y: 75 },
+    { id: 'tech' as const, label: '🔧 技术部', subtitle: 'Technology', x: 2, y: 1 },
+    { id: 'product' as const, label: '📊 产品部', subtitle: 'Product', x: 72, y: 1 },
+    { id: 'marketing' as const, label: '📈 市场部', subtitle: 'Marketing', x: 2, y: 60 },
+    { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 72, y: 63 },
+    { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 34, y: 1 },
+    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 49, y: 73 },
   ];
 
   const handleTaskHover = (task: TaskCard | null) => {
@@ -573,28 +573,24 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
   };
 
   // 布局常量（根据视觉可微调）
-  const NODE_SIZE_PERCENT = 4.2;        // 节点近似直径（%）
-  const LABEL_HEIGHT_PERCENT = 2.8;     // 标签高度（%），含行高 - 增大以适应更大字体
-  const CELL_X_PADDING = 1.0;           // 每格左右内边距（%） - 增加水平间距
-  const CELL_Y_PADDING = 0.8;           // 每格上下内边距（%）
-  const ROW_EXTRA_GAP_FOR_LABEL = 1.8;  // 标签与下一行卡片的额外行距（%） - 增加以适应更大标签
-  const AREA_SAFE_PADDING = 2.0;        // 部门区域整体安全边距（%）
+  const NODE_SIZE_PERCENT = 3.5;        // 节点近似直径（%） - 减小以适应更多节点
+  const LABEL_HEIGHT_PERCENT = 2.0;     // 标签高度（%），含行高
+  const CELL_X_PADDING = 0.5;           // 每格左右内边距（%）
+  const CELL_Y_PADDING = 0.5;           // 每格上下内边距（%）
+  const ROW_EXTRA_GAP_FOR_LABEL = 1.0;  // 标签与下一行卡片的额外行距（%）
+  const AREA_SAFE_PADDING = 1.5;        // 部门区域整体安全边距（%） - 减小以获得更多可用空间
 
   // 单元格最小尺寸（硬约束）
   const MIN_CELL_W = NODE_SIZE_PERCENT + CELL_X_PADDING * 2;
   const MIN_CELL_H = NODE_SIZE_PERCENT + LABEL_HEIGHT_PERCENT + CELL_Y_PADDING * 2 + ROW_EXTRA_GAP_FOR_LABEL;
 
-  // 按"列数搜索"选择最优网格（强制横向布局，避免竖列）
+  // 按"列数搜索"选择最优网格（接近方形，且不越界）
   const pickBestGrid = (count: number, usableW: number, usableH: number) => {
     let best: { cols: number; rows: number; cellW: number; cellH: number } | null = null;
 
-    // 从较多列数开始遍历，优先横向布局
-    for (let cols = count; cols >= 1; cols--) {
+    // 从1开始遍历所有可能的列数
+    for (let cols = 1; cols <= count; cols++) {
       const rows = Math.ceil(count / cols);
-
-      // 强制避免竖列：跳过行数大于列数的布局
-      if (rows > cols && cols > 1) continue;
-
       const cellW = usableW / cols;
       const cellH = usableH / rows;
 
@@ -603,33 +599,32 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
         if (!best) {
           best = { cols, rows, cellW, cellH };
         } else {
-          // 优先选择更横向的布局（cols > rows）
-          const curRatio = cols / rows;
-          const bestRatio = best.cols / best.rows;
-
-          // 如果当前布局更横向且单元格更大，则选择当前
-          if (curRatio > bestRatio || (Math.abs(curRatio - bestRatio) < 0.1 && cellW * cellH > best.cellW * best.cellH)) {
+          const curScore = Math.abs(cols - rows);
+          const bestScore = Math.abs(best.cols - best.rows);
+          // 先选择更接近方形的布局，其次选择单元格更宽的（视觉更舒展）
+          if (curScore < bestScore || (curScore === bestScore && cellW > best.cellW)) {
             best = { cols, rows, cellW, cellH };
           }
         }
       }
     }
 
-    // 如果一个可行解都没有，就"缩列"到满足最小宽度，"缩行"到满足最小高度
+    // 如果一个可行解都没有，降级处理
     if (!best) {
-      let cols = Math.max(1, Math.floor(usableW / MIN_CELL_W));
-      cols = Math.min(cols, count);
-      cols = Math.max(cols, 1);
+      // 尝试找到最大可能的列数
+      let cols = Math.min(count, Math.floor(usableW / MIN_CELL_W));
+      cols = Math.max(1, cols);
       let rows = Math.ceil(count / cols);
 
-      // 再检查高度，如果不够，再减少行密度（增加 rows 的可用 cellH）
+      // 如果高度还是不够，减少列数增加行数
       while (rows * MIN_CELL_H > usableH && cols > 1) {
         cols -= 1;
         rows = Math.ceil(count / cols);
       }
-      const cellW = Math.max(MIN_CELL_W, usableW / Math.max(1, cols));
-      const cellH = Math.max(MIN_CELL_H, usableH / Math.max(1, rows));
-      best = { cols: Math.max(1, cols), rows: Math.max(1, rows), cellW, cellH };
+
+      const cellW = Math.max(MIN_CELL_W, usableW / cols);
+      const cellH = Math.max(MIN_CELL_H, usableH / rows);
+      best = { cols, rows, cellW, cellH };
     }
 
     return best!;
@@ -733,24 +728,24 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
         <div className="relative z-10">
           <Users className="w-8 h-8 opacity-90" />
           {isCompleted && (
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-              <Check className="w-2.5 h-2.5 text-white" />
+            <div className="absolute -top-2 -right-2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+              <Check className="w-3 h-3 text-white" />
             </div>
           )}
-          {isExecuting && (
+          {isExecuting && !isCompleted && (
             <Loader2 className="w-3 h-3 text-primary absolute -top-1 -right-1 animate-spin" />
           )}
         </div>
 
-        {/* 名称标签：增大字体，固定行高与省略号，避免与下一行重叠 */}
+        {/* 名称标签：贴近Agent节点 */}
         <div
           className="
-            absolute left-1/2 top-[130%] -translate-x-1/2
-            whitespace-nowrap text-[14px] leading-[1.3rem] font-bold
+            absolute left-1/2 top-[110%] -translate-x-1/2
+            whitespace-nowrap text-xs leading-tight font-bold
             text-foreground pointer-events-none
-            bg-black/60 rounded px-2.5 py-1
-            max-w-[10rem] overflow-hidden text-ellipsis
-            drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]
+            bg-black/70 rounded px-1.5 py-0.5
+            max-w-[8rem] overflow-hidden text-ellipsis
+            drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]
           "
           title={agent.name}
         >
