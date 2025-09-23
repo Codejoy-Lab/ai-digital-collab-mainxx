@@ -59,12 +59,13 @@ export const ResultCollection = ({ task, onRestart }: ResultCollectionProps) => 
         {/* 二维码区域 */}
         <div className="mb-12 fade-in-up" style={{ animationDelay: '0.2s' }}>
           <div className="card-gradient border border-border/50 rounded-2xl p-8 inline-block">
-            {/* 二维码占位区域 */}
-            <div className="w-64 h-64 bg-muted/20 border-2 border-dashed border-border rounded-2xl flex items-center justify-center">
-              <div className="text-center">
-                <QrCode className="w-24 h-24 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground text-lg">二维码图片待放</p>
-              </div>
+            {/* 真实二维码 */}
+            <div className="w-64 h-64 flex items-center justify-center">
+              <img
+                src="/ai-digital-collab-mainxx/qr-code.png"
+                alt="微信二维码"
+                className="w-full h-full object-contain rounded-lg"
+              />
             </div>
           </div>
         </div>
