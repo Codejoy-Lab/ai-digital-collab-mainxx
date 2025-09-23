@@ -236,24 +236,24 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     height: 8  // Exclusion zone height (%)
   };
 
-  // Department areas for Agent positioning - avoiding center with proper spacing
+  // Department areas for Agent positioning - optimized to avoid vertical stacking
   const departmentAreas = {
-    tech: { x: 2, y: 5, width: 25, height: 30 },          // 左上 - 技术部12个agent，需要更大空间
-    product: { x: 73, y: 5, width: 25, height: 30 },      // 右上 - 产品部8个agent
-    marketing: { x: 2, y: 65, width: 25, height: 30 },    // 左下 - 市场部10个agent，需要较大空间
-    legal: { x: 73, y: 65, width: 25, height: 30 },       // 右下 - 法务部6个agent
-    finance: { x: 32, y: 5, width: 18, height: 20 },      // 中上 - 财务部6个agent
-    hr: { x: 50, y: 78, width: 25, height: 17 },          // 中下 - 人力部8个agent，调整位置避免与中央重叠
+    tech: { x: 1, y: 3, width: 30, height: 32 },          // 左上 - 技术部12个agent，专为4x3网格优化
+    product: { x: 66, y: 3, width: 32, height: 22 },      // 右上 - 产品部8个agent，强制水平布局
+    marketing: { x: 1, y: 62, width: 30, height: 32 },    // 左下 - 市场部10个agent，5x2或似方形布局
+    legal: { x: 70, y: 68, width: 28, height: 28 },       // 右下 - 法务部6个agent，3x2或方形布局
+    finance: { x: 34, y: 3, width: 28, height: 20 },      // 中上 - 财务部6个agent，强制水平布局
+    hr: { x: 40, y: 73, width: 35, height: 22 },          // 中下 - 人力部8个agent，大幅加宽避免竖列
   };
 
-  // Department labels
+  // Department labels - adjusted for optimized positions
   const departmentLabels = [
-    { id: 'tech' as const, label: '🔧 技术部', subtitle: 'Technology', x: 15, y: 5 },
-    { id: 'product' as const, label: '📊 产品部', subtitle: 'Product', x: 85, y: 5 },
-    { id: 'marketing' as const, label: '📈 市场部', subtitle: 'Marketing', x: 15, y: 65 },
-    { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 85, y: 65 },
-    { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 41, y: 5 },
-    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 62, y: 78 },
+    { id: 'tech' as const, label: '🔧 技术部', subtitle: 'Technology', x: 15, y: 3 },
+    { id: 'product' as const, label: '📊 产品部', subtitle: 'Product', x: 83, y: 3 },
+    { id: 'marketing' as const, label: '📈 市场部', subtitle: 'Marketing', x: 15, y: 62 },
+    { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 84, y: 65 },
+    { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 48, y: 3 },
+    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 61, y: 75 },
   ];
 
   const handleTaskHover = (task: TaskCard | null) => {
@@ -574,22 +574,27 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
 
   // 布局常量（根据视觉可微调）
   const NODE_SIZE_PERCENT = 4.2;        // 节点近似直径（%）
-  const LABEL_HEIGHT_PERCENT = 2.3;     // 标签高度（%），含行高
-  const CELL_X_PADDING = 0.8;           // 每格左右内边距（%）
+  const LABEL_HEIGHT_PERCENT = 2.8;     // 标签高度（%），含行高 - 增大以适应更大字体
+  const CELL_X_PADDING = 1.0;           // 每格左右内边距（%） - 增加水平间距
   const CELL_Y_PADDING = 0.8;           // 每格上下内边距（%）
-  const ROW_EXTRA_GAP_FOR_LABEL = 1.4;  // 标签与下一行卡片的额外行距（%）
+  const ROW_EXTRA_GAP_FOR_LABEL = 1.8;  // 标签与下一行卡片的额外行距（%） - 增加以适应更大标签
   const AREA_SAFE_PADDING = 2.0;        // 部门区域整体安全边距（%）
 
   // 单元格最小尺寸（硬约束）
   const MIN_CELL_W = NODE_SIZE_PERCENT + CELL_X_PADDING * 2;
   const MIN_CELL_H = NODE_SIZE_PERCENT + LABEL_HEIGHT_PERCENT + CELL_Y_PADDING * 2 + ROW_EXTRA_GAP_FOR_LABEL;
 
-  // 按"列数搜索"选择最优网格（接近方形，且不越界）
+  // 按"列数搜索"选择最优网格（强制横向布局，避免竖列）
   const pickBestGrid = (count: number, usableW: number, usableH: number) => {
     let best: { cols: number; rows: number; cellW: number; cellH: number } | null = null;
 
-    for (let cols = 1; cols <= count; cols++) {
+    // 从较多列数开始遍历，优先横向布局
+    for (let cols = count; cols >= 1; cols--) {
       const rows = Math.ceil(count / cols);
+
+      // 强制避免竖列：跳过行数大于列数的布局
+      if (rows > cols && cols > 1) continue;
+
       const cellW = usableW / cols;
       const cellH = usableH / rows;
 
@@ -598,10 +603,12 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
         if (!best) {
           best = { cols, rows, cellW, cellH };
         } else {
-          const curScore = Math.abs(cols - rows);
-          const bestScore = Math.abs(best.cols - best.rows);
-          // 先更方正，其次单元更宽（视觉更舒展）
-          if (curScore < bestScore || (curScore === bestScore && cellW > best.cellW)) {
+          // 优先选择更横向的布局（cols > rows）
+          const curRatio = cols / rows;
+          const bestRatio = best.cols / best.rows;
+
+          // 如果当前布局更横向且单元格更大，则选择当前
+          if (curRatio > bestRatio || (Math.abs(curRatio - bestRatio) < 0.1 && cellW * cellH > best.cellW * best.cellH)) {
             best = { cols, rows, cellW, cellH };
           }
         }
@@ -710,7 +717,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
           ${hasOutput ? 'cursor-pointer' : 'cursor-default'}
           w-16 h-16
           ${getDepartmentColor(agent.department)}
-          ${(isHighlighted || isSelected) && executionState === 'running' ? 'scale-125 border-primary border-3 shadow-[0_0_30px_hsl(var(--primary)/0.7)] z-30' : isBeingDispatched ? 'scale-125 border-tech-green border-3 shadow-[0_0_30px_hsl(var(--tech-green)/0.7)] z-30' : 'scale-100'}
+          ${(isHighlighted || isSelected) ? 'scale-125 border-primary border-3 shadow-[0_0_30px_hsl(var(--primary)/0.7)] z-30' : isBeingDispatched ? 'scale-125 border-tech-green border-3 shadow-[0_0_30px_hsl(var(--tech-green)/0.7)] z-30' : 'scale-100'}
           ${isDimmed ? 'opacity-20 scale-80' : executionState === 'running' && !isSelected ? 'opacity-30 scale-90' : 'opacity-100'}
           ${isHovered ? 'scale-110 z-40' : ''}
           ${isExecuting ? 'animate-pulse shadow-[0_0_40px_hsl(var(--primary)/0.9)]' : ''}
@@ -735,15 +742,15 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
           )}
         </div>
 
-        {/* 名称标签：固定行高与省略号，避免与下一行重叠 */}
+        {/* 名称标签：增大字体，固定行高与省略号，避免与下一行重叠 */}
         <div
           className="
             absolute left-1/2 top-[130%] -translate-x-1/2
-            whitespace-nowrap text-[12px] leading-[1.1rem] font-semibold
+            whitespace-nowrap text-[14px] leading-[1.3rem] font-bold
             text-foreground pointer-events-none
-            bg-black/40 rounded px-2 py-[2px]
-            max-w-[8rem] overflow-hidden text-ellipsis
-            drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]
+            bg-black/60 rounded px-2.5 py-1
+            max-w-[10rem] overflow-hidden text-ellipsis
+            drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]
           "
           title={agent.name}
         >
@@ -894,8 +901,11 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                   const unitX = dx / distance;
                   const unitY = dy / distance;
 
-                  // Agent visual radius in percentage units (agents are w-16 h-16, approximately 4% of container)
-                  const agentRadius = 3;
+                  // Agent visual radius in percentage units
+                  // Agents are w-16 h-16 which is approximately 64px
+                  // In a typical 1920px container, that's about 3.3% width
+                  // But we use 4% to ensure we connect to the edge, not overlap
+                  const agentRadius = 4;
                   const startX = prevPos.coords.x + unitX * agentRadius;
                   const startY = prevPos.coords.y + unitY * agentRadius;
                   const endX = currPos.coords.x - unitX * agentRadius;
@@ -904,7 +914,8 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
                   // Create curved path for better visual appeal
                   const midX = (startX + endX) / 2;
                   const midY = (startY + endY) / 2;
-                  const controlOffset = Math.min(8, distance / 4); // Adaptive curve based on distance
+                  // Reduced control offset for subtler curves
+                  const controlOffset = Math.min(5, distance / 6); // Adaptive curve based on distance
                   const perpX = -unitY * controlOffset;
                   const perpY = unitX * controlOffset;
 
