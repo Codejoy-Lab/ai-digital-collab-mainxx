@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { SelectedTask } from '@/pages/AIDemoPage';
 import { QrCode, Download, FileText, Globe, RotateCcw, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
+import qrCodeImage from '@/assets/qr-code.png';
 
 interface ResultCollectionProps {
   task: SelectedTask | null;
@@ -62,9 +63,13 @@ export const ResultCollection = ({ task, onRestart }: ResultCollectionProps) => 
             {/* 真实二维码 */}
             <div className="w-64 h-64 flex items-center justify-center">
               <img
-                src="qr-code.png"
+                src={qrCodeImage}
                 alt="微信二维码"
                 className="w-full h-full object-contain rounded-lg"
+                onError={(e) => {
+                  console.error('二维码图片加载失败，显示后备方案');
+                  console.log('尝试加载的图片路径:', qrCodeImage);
+                }}
               />
             </div>
           </div>
