@@ -62,7 +62,7 @@ export const ResultCollection = ({ task, onRestart }: ResultCollectionProps) => 
             {/* 真实二维码 */}
             <div className="w-64 h-64 flex items-center justify-center">
               <img
-                src="/ai-digital-collab-mainxx/qr-code.png"
+                src="qr-code.png"
                 alt="微信二维码"
                 className="w-full h-full object-contain rounded-lg"
               />
