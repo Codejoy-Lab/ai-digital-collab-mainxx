@@ -241,9 +241,9 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     tech: { x: 1, y: 3, width: 30, height: 32 },          // 左上 - 技术部12个agent，专为4x3网格优化
     product: { x: 66, y: 3, width: 32, height: 22 },      // 右上 - 产品部8个agent，强制水平布局
     marketing: { x: 1, y: 62, width: 30, height: 32 },    // 左下 - 市场部10个agent，5x2或似方形布局
-    legal: { x: 70, y: 68, width: 28, height: 28 },       // 右下 - 法务部6个agent，3x2或方形布局
+    legal: { x: 70, y: 62, width: 28, height: 32 },       // 右下 - 法务部6个agent，与市场部Y位置对齐
     finance: { x: 34, y: 3, width: 28, height: 20 },      // 中上 - 财务部6个agent，强制水平布局
-    hr: { x: 35, y: 68, width: 35, height: 26 },          // 中下 - 人力部8个agent，调整Y位置与法务部对齐
+    hr: { x: 35, y: 62, width: 35, height: 32 },          // 中下 - 人力部8个agent，与市场部Y位置对齐
   };
 
   // Department labels - positioned at top-left corner of each department area
@@ -251,9 +251,9 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
     { id: 'tech' as const, label: '🔧 技术部', subtitle: 'Technology', x: 2, y: 1 },
     { id: 'product' as const, label: '📊 产品部', subtitle: 'Product', x: 72, y: 1 },
     { id: 'marketing' as const, label: '📈 市场部', subtitle: 'Marketing', x: 2, y: 60 },
-    { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 72, y: 63 },
+    { id: 'legal' as const, label: '⚖️ 法务部', subtitle: 'Legal', x: 72, y: 60 },
     { id: 'finance' as const, label: '💰 财务部', subtitle: 'Finance', x: 34, y: 1 },
-    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 37, y: 63 },
+    { id: 'hr' as const, label: '👥 人力部', subtitle: 'HR', x: 37, y: 60 },
   ];
 
   const handleTaskHover = (task: TaskCard | null) => {
