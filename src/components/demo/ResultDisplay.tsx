@@ -208,6 +208,69 @@ export const ResultDisplay = ({ task, onContinue }: ResultDisplayProps) => {
               </div>
             </div>
 
+            {/* Contract Risk Analysis - Show only for task-06 */}
+            {task.id === 'task-06' && (
+              <div className="space-y-4 mb-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  合同风险分析结果 / Risk Analysis Results
+                </h3>
+
+                {/* High Risk */}
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span className="text-red-400 font-semibold">高风险 / High Risk (3项)</span>
+                  </div>
+                  <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+                    <li>• 违约责任条款不对等，我方承担过重责任</li>
+                    <li>• 知识产权归属条款存在重大不利条件</li>
+                    <li>• 付款条件对我方极为不利，缺乏保障机制</li>
+                  </ul>
+                </div>
+
+                {/* Medium Risk */}
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                    <span className="text-yellow-400 font-semibold">中风险 / Medium Risk (5项)</span>
+                  </div>
+                  <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+                    <li>• 履约保证金比例偏高，需要协商调整</li>
+                    <li>• 争议解决条款约定地点对我方不便</li>
+                    <li>• 验收标准描述不够明确，存在争议隐患</li>
+                    <li>• 保密条款期限过长，建议缩短至3年</li>
+                    <li>• 不可抗力条款定义不够全面</li>
+                  </ul>
+                </div>
+
+                {/* Low Risk */}
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-green-400 font-semibold">低风险 / Low Risk (8项)</span>
+                  </div>
+                  <ul className="text-sm text-muted-foreground space-y-1 ml-4">
+                    <li>• 合同主体资质完备，信用状况良好</li>
+                    <li>• 交付时间安排合理，有充足缓冲期</li>
+                    <li>• 技术规格说明清晰完整</li>
+                    <li>• 售后服务条款标准合理</li>
+                  </ul>
+                </div>
+
+                {/* Summary */}
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mt-4">
+                  <h4 className="text-sm font-semibold text-primary mb-2">
+                    综合评估 / Overall Assessment
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    本合同存在 <span className="text-red-400 font-semibold">3项高风险</span> 和 <span className="text-yellow-400 font-semibold">5项中风险</span> 条款，
+                    建议在签署前重点协商修改高风险条款，特别是违约责任和知识产权相关条款。
+                    整体风险等级：<span className="text-yellow-400 font-semibold">中高风险</span>，需谨慎处理。
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Content Metrics */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
