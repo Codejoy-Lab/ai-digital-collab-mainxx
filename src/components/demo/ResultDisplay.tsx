@@ -257,7 +257,7 @@ export const ResultDisplay = ({ task, onContinue }: ResultDisplayProps) => {
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                    <span className="text-yellow-400 font-semibold">中风险 / Medium Risk (2项展示)</span>
+                    <span className="text-yellow-400 font-semibold">中风险 / Medium Risk (2项)</span>
                   </div>
 
                   <div className="space-y-3">
