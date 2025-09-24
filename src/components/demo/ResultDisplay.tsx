@@ -181,12 +181,7 @@ export const ResultDisplay = ({ task, onContinue }: ResultDisplayProps) => {
               </span>
             </div>
             
-            <h1 className="text-4xl font-bold text-gradient mb-4">
-              成果展示
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Task completed by AI digital workforce
-            </p>
+            <div className="mb-4" />
           </div>
 
           {/* Result Card */}
@@ -217,30 +212,81 @@ export const ResultDisplay = ({ task, onContinue }: ResultDisplayProps) => {
 
                 {/* High Risk */}
                 <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-2">
+                  <div className="flex items-center space-x-2 mb-3">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                     <span className="text-red-400 font-semibold">高风险 / High Risk (3项)</span>
                   </div>
-                  <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                    <li>• 违约责任条款不对等，我方承担过重责任</li>
-                    <li>• 知识产权归属条款存在重大不利条件</li>
-                    <li>• 付款条件对我方极为不利，缺乏保障机制</li>
-                  </ul>
+
+                  <div className="space-y-3">
+                    {/* Risk 1 */}
+                    <div className="space-y-2">
+                      <div className="text-sm text-red-400 font-medium">1. 违约责任条款不对等</div>
+                      <div className="bg-black/20 rounded p-2 text-xs text-muted-foreground">
+                        <span className="text-yellow-400">原文：</span>"乙方如违反本合同任何条款，应支付合同总额50%的违约金。甲方违约责任以实际损失为限。"
+                      </div>
+                      <div className="bg-green-500/10 rounded p-2 text-xs text-green-400">
+                        <span className="font-medium">修改建议：</span>"双方如违反本合同约定，应支付合同总额20%的违约金，最高不超过实际损失的1.5倍。"
+                      </div>
+                    </div>
+
+                    {/* Risk 2 */}
+                    <div className="space-y-2">
+                      <div className="text-sm text-red-400 font-medium">2. 知识产权归属条款</div>
+                      <div className="bg-black/20 rounded p-2 text-xs text-muted-foreground">
+                        <span className="text-yellow-400">原文：</span>"项目过程中产生的所有知识产权，包括但不限于技术方案、源代码、文档等，均归甲方所有。"
+                      </div>
+                      <div className="bg-green-500/10 rounded p-2 text-xs text-green-400">
+                        <span className="font-medium">修改建议：</span>"项目交付成果的知识产权归甲方所有，乙方保留其原有技术和通用技术组件的知识产权。"
+                      </div>
+                    </div>
+
+                    {/* Risk 3 */}
+                    <div className="space-y-2">
+                      <div className="text-sm text-red-400 font-medium">3. 付款条件</div>
+                      <div className="bg-black/20 rounded p-2 text-xs text-muted-foreground">
+                        <span className="text-yellow-400">原文：</span>"合同签订后乙方开始工作，项目完成并通过验收后180天内支付全部款项。"
+                      </div>
+                      <div className="bg-green-500/10 rounded p-2 text-xs text-green-400">
+                        <span className="font-medium">修改建议：</span>"合同签订后支付30%预付款，项目中期支付30%，验收后30天内支付剩余40%。"
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Medium Risk */}
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-2">
+                  <div className="flex items-center space-x-2 mb-3">
                     <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                    <span className="text-yellow-400 font-semibold">中风险 / Medium Risk (5项)</span>
+                    <span className="text-yellow-400 font-semibold">中风险 / Medium Risk (2项展示)</span>
                   </div>
-                  <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                    <li>• 履约保证金比例偏高，需要协商调整</li>
-                    <li>• 争议解决条款约定地点对我方不便</li>
-                    <li>• 验收标准描述不够明确，存在争议隐患</li>
-                    <li>• 保密条款期限过长，建议缩短至3年</li>
-                    <li>• 不可抗力条款定义不够全面</li>
-                  </ul>
+
+                  <div className="space-y-3">
+                    {/* Medium Risk 1 */}
+                    <div className="space-y-2">
+                      <div className="text-sm text-yellow-400 font-medium">1. 履约保证金条款</div>
+                      <div className="bg-black/20 rounded p-2 text-xs text-muted-foreground">
+                        <span className="text-yellow-400">原文：</span>"乙方应在合同签订后5日内支付合同总额30%作为履约保证金。"
+                      </div>
+                      <div className="bg-green-500/10 rounded p-2 text-xs text-green-400">
+                        <span className="font-medium">修改建议：</span>"乙方应在收到预付款后5日内支付合同总额10%作为履约保证金。"
+                      </div>
+                    </div>
+
+                    {/* Medium Risk 2 */}
+                    <div className="space-y-2">
+                      <div className="text-sm text-yellow-400 font-medium">2. 验收标准条款</div>
+                      <div className="bg-black/20 rounded p-2 text-xs text-muted-foreground">
+                        <span className="text-yellow-400">原文：</span>"项目交付物应满足甲方要求，具体以甲方验收为准。"
+                      </div>
+                      <div className="bg-green-500/10 rounded p-2 text-xs text-green-400">
+                        <span className="font-medium">修改建议：</span>"项目交付物应满足合同附件一所列技术规格和验收标准，验收期限为15个工作日。"
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground italic mt-2">
+                      * 另有3项中风险条款涉及保密期限、争议解决、不可抗力等...
+                    </div>
+                  </div>
                 </div>
 
                 {/* Low Risk */}
