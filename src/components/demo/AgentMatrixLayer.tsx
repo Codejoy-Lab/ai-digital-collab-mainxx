@@ -494,6 +494,57 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
           ...prev.slice(0, 20)
         ]);
 
+        // Add detailed processing info for contract analysis task
+        if (task.id === 'task-06') {
+          // Show specific processing details for each step
+          setTimeout(() => {
+            const processingDetails = {
+              'legal-01': [
+                '▶ 正在扫描合同条款...',
+                '▶ 识别到违约责任条款不对等',
+                '▶ 发现知识产权归属风险',
+                '▶ 检测到付款条件异常'
+              ],
+              'legal-02': [
+                '▶ 检查监管合规要求...',
+                '▶ 验证行业标准符合性',
+                '▶ 审查数据保护条款',
+                '▶ 评估反垄断风险'
+              ],
+              'legal-03': [
+                '▶ 评估风险影响程度...',
+                '▶ 制定风险控制方案',
+                '▶ 设计监控机制',
+                '▶ 生成风险矩阵图'
+              ],
+              'finance-01': [
+                '▶ 分析付款条件...',
+                '▶ 计算现金流影响',
+                '▶ 评估成本效益比',
+                '▶ 预测财务风险'
+              ],
+              'legal-04': [
+                '▶ 整合各部门意见...',
+                '▶ 生成综合分析报告',
+                '▶ 制定修改建议',
+                '▶ 形成最终决策方案'
+              ]
+            };
+
+            const details = processingDetails[step.agentId] || step.details;
+            if (details) {
+              details.forEach((detail, index) => {
+                setTimeout(() => {
+                  setExecutionLogs(prev => [
+                    `[${new Date().toLocaleTimeString()}] ${detail}`,
+                    ...prev.slice(0, 30)
+                  ]);
+                }, index * 500);
+              });
+            }
+          }, 500);
+        }
+
         // Simulate step execution
         setTimeout(() => {
           // Mark as completed and add output
@@ -508,10 +559,26 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
           };
           setAgentOutputs(prev => [...prev, output]);
 
-          setExecutionLogs(prev => [
-            `[${new Date().toLocaleTimeString()}] ✅ ${step.agentName} 已完成 ${step.action}`,
-            ...prev.slice(0, 20)
-          ]);
+          // Add completion logs with results for contract analysis
+          if (task.id === 'task-06') {
+            const completionMessages = {
+              'legal-01': '✅ 法律风险识别完成: 发现3项高风险、5项中风险',
+              'legal-02': '✅ 合规性评估完成: 需重点关注数据保护和反垄断条款',
+              'legal-03': '✅ 风险控制分析完成: 已生成风险缓解方案',
+              'finance-01': '✅ 财务影响评估完成: 预计影响现金流-15%',
+              'legal-04': '✅ 综合分析报告完成: 建议修改后再签署'
+            };
+
+            setExecutionLogs(prev => [
+              `[${new Date().toLocaleTimeString()}] ${completionMessages[step.agentId] || `✅ ${step.agentName} 已完成 ${step.action}`}`,
+              ...prev.slice(0, 30)
+            ]);
+          } else {
+            setExecutionLogs(prev => [
+              `[${new Date().toLocaleTimeString()}] ✅ ${step.agentName} 已完成 ${step.action}`,
+              ...prev.slice(0, 20)
+            ]);
+          }
 
           // Update progress
           setTaskProgress(((stepIndex + 1) / task.workflow.length) * 100);
