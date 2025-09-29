@@ -203,7 +203,246 @@ export const ResultDisplay = ({ task, onContinue }: ResultDisplayProps) => {
               </div>
             </div>
 
-            {/* Contract Risk Analysis - Show only for task-06 */}
+            {/* Task-specific Results Display */}
+            {/* Task 01: AI Engineer Recruitment Results */}
+            {task.id === 'task-01' && (
+              <div className="space-y-4 mb-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  招聘执行结果 / Recruitment Results
+                </h3>
+
+                <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                      <span className="text-primary font-semibold">候选人推荐结果</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="bg-black/20 rounded p-3">
+                        <div className="text-green-400 font-semibold mb-1">✅ 已发布职位</div>
+                        <div className="text-xs text-muted-foreground">
+                          • 发布平台: LinkedIn、Boss直聘、拉勾网<br/>
+                          • 覆盖人数: 50,000+<br/>
+                          • 24小时内收到简历: 186份
+                        </div>
+                      </div>
+                      <div className="bg-black/20 rounded p-3">
+                        <div className="text-blue-400 font-semibold mb-1">📊 筛选结果</div>
+                        <div className="text-xs text-muted-foreground">
+                          • 初筛通过: 42人<br/>
+                          • 技术面试通过: 12人<br/>
+                          • 终面候选: 5人
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-500/10 rounded p-3">
+                      <div className="text-sm text-green-400 font-semibold mb-1">🎯 推荐候选人TOP 3</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>1. 张XX - 前百度高级算法工程师，5年经验，匹配度95%</div>
+                        <div>2. 李XX - 前阿里AI专家，8年经验，匹配度92%</div>
+                        <div>3. 王XX - 前字节跳动算法负责人，6年经验，匹配度90%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Task 02: Product Requirements Document Results */}
+            {task.id === 'task-02' && (
+              <div className="space-y-4 mb-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  PRD文档成果 / PRD Document Results
+                </h3>
+
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                      <span className="text-purple-400 font-semibold">产品需求文档已生成</span>
+                    </div>
+
+                    <div className="bg-black/20 rounded p-3 text-sm">
+                      <div className="text-purple-400 font-semibold mb-2">📄 文档概览</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• 文档页数: 45页</div>
+                        <div>• 功能模块: 12个</div>
+                        <div>• 用户故事: 38个</div>
+                        <div>• 原型设计: 25个界面</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-black/20 rounded p-2 text-xs">
+                        <div className="text-blue-400 font-semibold mb-1">核心功能</div>
+                        <div className="text-muted-foreground">
+                          • 用户认证系统<br/>
+                          • 数据分析仪表板<br/>
+                          • AI智能推荐<br/>
+                          • 实时协作功能
+                        </div>
+                      </div>
+                      <div className="bg-black/20 rounded p-2 text-xs">
+                        <div className="text-green-400 font-semibold mb-1">技术评估</div>
+                        <div className="text-muted-foreground">
+                          • 开发周期: 3个月<br/>
+                          • 所需人力: 8人<br/>
+                          • 技术栈: React+Node<br/>
+                          • 预算评估: 120万
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Task 03: Google Ads Campaign Results */}
+            {task.id === 'task-03' && (
+              <div className="space-y-4 mb-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  广告投放成果 / Campaign Results
+                </h3>
+
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-green-400 font-semibold">广告已成功投放</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-black/20 rounded p-3">
+                        <div className="text-green-400 font-semibold mb-1">🚀 投放平台</div>
+                        <div className="text-xs text-muted-foreground">
+                          • Google Ads: 搜索+展示网络<br/>
+                          • Facebook Ads: 信息流广告<br/>
+                          • LinkedIn: B2B精准投放<br/>
+                          • YouTube: 视频广告
+                        </div>
+                      </div>
+                      <div className="bg-black/20 rounded p-3">
+                        <div className="text-blue-400 font-semibold mb-1">📈 首日数据</div>
+                        <div className="text-xs text-muted-foreground">
+                          • 曝光量: 125,000次<br/>
+                          • 点击量: 3,750次<br/>
+                          • CTR: 3.0%<br/>
+                          • 转化数: 45个
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-primary/10 rounded p-3">
+                      <div className="text-sm text-primary font-semibold mb-1">💡 关键词策略</div>
+                      <div className="text-xs text-muted-foreground">
+                        • 核心词: AI解决方案、数字化转型、智能办公（CPC: ¥15-25）<br/>
+                        • 长尾词: 企业AI数字员工、智能协作平台、AI流程自动化（CPC: ¥8-15）<br/>
+                        • 预计ROI: 投入1元预计产出3.5元
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Task 04: Bug Fix Results */}
+            {task.id === 'task-04' && (
+              <div className="space-y-4 mb-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  Bug修复成果 / Bug Fix Results
+                </h3>
+
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                      <span className="text-blue-400 font-semibold">问题已修复并发布</span>
+                    </div>
+
+                    <div className="bg-black/20 rounded p-3">
+                      <div className="text-blue-400 font-semibold mb-2">🐛 修复详情</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• 严重Bug: 3个（内存泄漏、数据同步、权限漏洞）</div>
+                        <div>• 一般Bug: 8个（UI显示、性能优化、兼容性）</div>
+                        <div>• 优化项: 5个（代码重构、性能提升）</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-green-500/10 rounded p-2">
+                        <div className="text-green-400 text-xs font-semibold mb-1">✅ 版本发布</div>
+                        <div className="text-xs text-muted-foreground">
+                          • 版本号: v2.3.1<br/>
+                          • 发布时间: 2024-01-15 18:30<br/>
+                          • 影响用户: 0（灰度发布）
+                        </div>
+                      </div>
+                      <div className="bg-yellow-500/10 rounded p-2">
+                        <div className="text-yellow-400 text-xs font-semibold mb-1">📊 测试覆盖</div>
+                        <div className="text-xs text-muted-foreground">
+                          • 单元测试: 98%<br/>
+                          • 集成测试: 通过<br/>
+                          • 回归测试: 无问题
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Task 05: Contract Draft Results */}
+            {task.id === 'task-05' && (
+              <div className="space-y-4 mb-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
+                  合同起草成果 / Contract Draft Results
+                </h3>
+
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                      <span className="text-orange-400 font-semibold">合同文本已完成</span>
+                    </div>
+
+                    <div className="bg-black/20 rounded p-3">
+                      <div className="text-orange-400 font-semibold mb-2">📜 合同概要</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• 合同类型: 技术服务合同</div>
+                        <div>• 合同金额: ¥500,000</div>
+                        <div>• 服务期限: 12个月</div>
+                        <div>• 条款数量: 28条</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="bg-green-500/10 rounded p-2">
+                        <div className="text-green-400 font-semibold mb-1">✅ 已包含条款</div>
+                        <div className="text-muted-foreground">
+                          • 服务范围与交付<br/>
+                          • 付款方式与进度<br/>
+                          • 知识产权归属<br/>
+                          • 保密与竞业限制
+                        </div>
+                      </div>
+                      <div className="bg-blue-500/10 rounded p-2">
+                        <div className="text-blue-400 font-semibold mb-1">🛡️ 风险保护</div>
+                        <div className="text-muted-foreground">
+                          • 违约责任明确<br/>
+                          • 争议解决机制<br/>
+                          • 不可抗力条款<br/>
+                          • 终止与解除条件
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Task 06: Contract Risk Analysis - Existing */}
             {task.id === 'task-06' && (
               <div className="space-y-4 mb-6">
                 <h3 className="text-lg font-semibold text-foreground mb-3">
