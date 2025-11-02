@@ -58,6 +58,13 @@ const TaskExecution = ({ task }: TaskExecutionProps) => {
     }
   }, [task]);
 
+  // Auto-open dialog when logs start appearing
+  useEffect(() => {
+    if (logs.length > 0 && !showLogDialog) {
+      setShowLogDialog(true);
+    }
+  }, [logs.length]);
+
   // Handle null task gracefully
   if (!task) {
     return (
