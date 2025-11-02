@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 
 interface TaskExecutionProps {
@@ -48,6 +47,7 @@ const TaskExecution = ({ task }: TaskExecutionProps) => {
   const [contractFile, setContractFile] = useState<File | null>(null);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
   const [executionStarted, setExecutionStarted] = useState(false);
+  const [showLogDialog, setShowLogDialog] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -392,44 +392,49 @@ const TaskExecution = ({ task }: TaskExecutionProps) => {
             <h3 className="text-lg font-semibold text-foreground">
               {isRealExecution ? '实时AI活动日志' : '实时活动详情'} / {isRealExecution ? 'Real AI Activity Logs' : 'Real-time Activity Details'}
             </h3>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Maximize2 className="w-4 h-4" />
-                  放大查看
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl">实时活动日志 / Real-time Activity Logs</DialogTitle>
-                </DialogHeader>
-                <div className="flex-1 overflow-y-auto space-y-3 pr-4">
-                  {logs.map((log, index) => (
-                    <div
-                      key={index}
-                      className="text-lg text-foreground bg-muted/30 rounded-lg p-4 border border-border/40"
-                      style={{ animationDelay: `${index * 0.02}s` }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-mono text-sm">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 leading-relaxed">
-                          {log}
-                        </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setShowLogDialog(true)}
+            >
+              <Maximize2 className="w-4 h-4" />
+              放大查看
+            </Button>
+          </div>
+
+          {/* Log Dialog */}
+          <Dialog open={showLogDialog} onOpenChange={setShowLogDialog}>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+              <DialogHeader>
+                <DialogTitle className="text-2xl">实时活动日志 / Real-time Activity Logs</DialogTitle>
+              </DialogHeader>
+              <div className="flex-1 overflow-y-auto space-y-3 pr-4">
+                {logs.map((log, index) => (
+                  <div
+                    key={index}
+                    className="text-lg text-foreground bg-muted/30 rounded-lg p-4 border border-border/40"
+                    style={{ animationDelay: `${index * 0.02}s` }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-mono text-sm">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 leading-relaxed">
+                        {log}
                       </div>
                     </div>
-                  ))}
-                  {logs.length === 0 && (
-                    <div className="text-center text-muted-foreground py-12">
-                      <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="text-lg">等待活动日志...</p>
-                    </div>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
+                  </div>
+                ))}
+                {logs.length === 0 && (
+                  <div className="text-center text-muted-foreground py-12">
+                    <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-lg">等待活动日志...</p>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
           <div className="space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
             {logs.map((log, index) => (
               <div
