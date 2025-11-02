@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Users, Zap, Target, Briefcase, Code, Megaphone, FileText, Network, CheckCircle2, Loader2, Crown, ChevronUp, Activity, Clock, X, Check, GitBranch } from 'lucide-react';
+import { ArrowLeft, Users, Zap, Target, Briefcase, Code, Megaphone, FileText, Network, CheckCircle2, Loader2, Crown, ChevronUp, Activity, Clock, X, Check, GitBranch, Maximize2 } from 'lucide-react';
 import { SelectedTask, WorkflowStep } from '@/pages/AIDemoPage';
 import { buildApiUrl, WS_BASE_URL } from '@/config/api.config';
 import ReactMarkdown from 'react-markdown';
@@ -56,6 +56,7 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
   const [agentOutputs, setAgentOutputs] = useState<AgentOutput[]>([]);
   const [selectedAgentOutput, setSelectedAgentOutput] = useState<AgentOutput | null>(null);
   const [showOutputDialog, setShowOutputDialog] = useState(false);
+  const [showLogDialog, setShowLogDialog] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [executionStarted, setExecutionStarted] = useState(false);
   const [isDispatcherActive, setIsDispatcherActive] = useState(false);
@@ -1149,7 +1150,18 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
               <Clock className="w-5 h-5 text-tech-green animate-pulse" />
               <span className="text-base font-bold text-tech-green font-mono">[SYSTEM LOG]</span>
             </div>
-            <span className="text-xs font-mono text-tech-blue/60">LIVE</span>
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 h-7 text-xs border-tech-blue/50 hover:border-tech-blue hover:bg-tech-blue/10"
+                onClick={() => setShowLogDialog(true)}
+              >
+                <Maximize2 className="w-3 h-3" />
+                放大
+              </Button>
+              <span className="text-xs font-mono text-tech-blue/60">LIVE</span>
+            </div>
           </div>
           <div className="bg-black/90 border border-tech-blue/30 rounded-sm p-3 font-mono text-xs">
             <div className="space-y-1 max-h-[calc(100vh-400px)] overflow-y-auto pr-2 custom-scrollbar">
@@ -1190,6 +1202,49 @@ const AgentMatrixLayer = ({ onTaskSelect, onBack, onTaskComplete }: AgentMatrixL
             {selectedAgentOutput && (
               <ReactMarkdown>{selectedAgentOutput.content}</ReactMarkdown>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Execution Log Dialog */}
+      <Dialog open={showLogDialog} onOpenChange={setShowLogDialog}>
+        <DialogContent className="max-w-2xl max-h-[70vh] overflow-hidden flex flex-col bg-gradient-to-br from-black via-tech-blue/5 to-black border-2 border-tech-blue/50">
+          <DialogHeader className="border-b border-tech-blue/30 pb-4">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-tech-blue to-tech-green bg-clip-text text-transparent flex items-center gap-3">
+              <Activity className="w-7 h-7 text-tech-green animate-pulse" />
+              实时执行日志 / Real-time Execution Logs
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
+            <div className="space-y-3 py-4">
+              {executionLogs.length === 0 ? (
+                <div className="text-center text-tech-blue/60 py-20">
+                  <Activity className="w-16 h-16 mx-auto mb-4 opacity-50 animate-pulse" />
+                  <p className="text-xl font-mono">▶ AWAITING TASK INITIALIZATION...</p>
+                </div>
+              ) : (
+                executionLogs.map((log, index) => (
+                  <div
+                    key={index}
+                    className="bg-black/60 border border-tech-blue/20 rounded-lg p-4 hover:border-tech-green/40 transition-all duration-200"
+                    style={{ animationDelay: `${index * 0.02}s` }}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-tech-blue/20 to-tech-green/20 border border-tech-blue/40 flex items-center justify-center">
+                        <span className="text-tech-green font-mono font-bold text-sm">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                      </div>
+                      <div className="flex-1 leading-relaxed">
+                        <p className="text-lg text-green-400/90 font-mono">
+                          ▶ {log}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
