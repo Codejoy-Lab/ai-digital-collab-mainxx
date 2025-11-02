@@ -1,8 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { SelectedTask } from '@/pages/AIDemoPage';
-import { Users, Activity, CheckCircle2, Clock, Upload } from 'lucide-react';
+import { Users, Activity, CheckCircle2, Clock, Upload, Maximize2 } from 'lucide-react';
 import { buildApiUrl, WS_BASE_URL } from '@/config/api.config';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface TaskExecutionProps {
   task: SelectedTask | null;
@@ -186,7 +193,7 @@ const TaskExecution = ({ task }: TaskExecutionProps) => {
             ...prevLogs.slice(0, 25)
           ]);
         }
-      }, 500);
+      }, 1500); // 增加到1500ms，方便讲解
 
       // Move to next step when current completes
       const stepTimer = setTimeout(() => {
@@ -198,7 +205,7 @@ const TaskExecution = ({ task }: TaskExecutionProps) => {
             setCurrentStep(prev => prev + 1);
           }, 1000);
         }
-      }, currentStepData.duration * 4);
+      }, currentStepData.duration * 8); // 增加到8倍时长，便于讲解
 
       return () => {
         clearInterval(progressInterval);
@@ -381,9 +388,48 @@ const TaskExecution = ({ task }: TaskExecutionProps) => {
       <div className="flex-1 grid grid-cols-12 gap-6 relative">
         {/* Left Activity Panel */}
         <div className="col-span-4 space-y-2">
-          <h3 className="text-lg font-semibold text-foreground mb-3">
-            {isRealExecution ? '实时AI活动日志' : '实时活动详情'} / {isRealExecution ? 'Real AI Activity Logs' : 'Real-time Activity Details'}
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-foreground">
+              {isRealExecution ? '实时AI活动日志' : '实时活动详情'} / {isRealExecution ? 'Real AI Activity Logs' : 'Real-time Activity Details'}
+            </h3>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Maximize2 className="w-4 h-4" />
+                  放大查看
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">实时活动日志 / Real-time Activity Logs</DialogTitle>
+                </DialogHeader>
+                <div className="flex-1 overflow-y-auto space-y-3 pr-4">
+                  {logs.map((log, index) => (
+                    <div
+                      key={index}
+                      className="text-lg text-foreground bg-muted/30 rounded-lg p-4 border border-border/40"
+                      style={{ animationDelay: `${index * 0.02}s` }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-mono text-sm">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 leading-relaxed">
+                          {log}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {logs.length === 0 && (
+                    <div className="text-center text-muted-foreground py-12">
+                      <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-lg">等待活动日志...</p>
+                    </div>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
           <div className="space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
             {logs.map((log, index) => (
               <div
