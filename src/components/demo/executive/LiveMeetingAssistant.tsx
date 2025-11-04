@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Bot,
   Sparkles,
+  Target,
 } from 'lucide-react';
 
 interface Message {
@@ -60,11 +61,41 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
   const [isMeetingEnded, setIsMeetingEnded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const analysisEndRef = useRef<HTMLDivElement>(null);
+  const triggeredAnalysis = useRef<Set<string>>(new Set());
+  const triggeredSignals = useRef<Set<string>>(new Set());
+
+  // 格式化内容：解析 **文字** 为加粗样式，\n 为换行
+  const renderFormattedContent = (content: string) => {
+    const lines = content.split('\n');
+    return lines.map((line, lineIndex) => {
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      const formattedLine = parts.map((part, partIndex) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return (
+            <strong key={`${lineIndex}-${partIndex}`} className="text-primary font-bold">
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        return <span key={`${lineIndex}-${partIndex}`}>{part}</span>;
+      });
+      return (
+        <div key={lineIndex}>
+          {formattedLine}
+        </div>
+      );
+    });
+  };
 
   // 会议洞察统计
   const [topicStats, setTopicStats] = useState({ purchase: 0, price: 0, tech: 0, delivery: 0, service: 0 });
   const [sentiment, setSentiment] = useState({ positive: 0, neutral: 0, concern: 0 });
   const [decisions, setDecisions] = useState<string[]>([]);
+  const [dealSignals, setDealSignals] = useState({
+    positive: [] as string[],
+    concerns: [] as string[],
+    strength: 0
+  });
 
   const meetingDialogue: Message[] = [
     {
@@ -287,6 +318,58 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
           setDecisions((prev) => [...prev, currentMsg.decisionText!]);
         }
 
+        // 更新成交信号（带去重）
+        if (currentMsg.speaker === 'client') {
+          if ((currentMsg.keywords?.includes('500万') || currentMsg.keywords?.includes('预算')) && !triggeredSignals.current.has('budget')) {
+            triggeredSignals.current.add('budget');
+            setDealSignals((prev) => ({
+              ...prev,
+              positive: [...prev.positive, '明确预算：500万'],
+              strength: Math.min(85, prev.strength + 20)
+            }));
+          }
+          if ((currentMsg.text.includes('满意') || currentMsg.text.includes('不错')) && !triggeredSignals.current.has('satisfaction')) {
+            triggeredSignals.current.add('satisfaction');
+            setDealSignals((prev) => ({
+              ...prev,
+              positive: [...prev.positive, 'POC表现满意'],
+              strength: Math.min(85, prev.strength + 15)
+            }));
+          }
+          if ((currentMsg.keywords?.includes('融资') || currentMsg.keywords?.includes('扩大规模')) && !triggeredSignals.current.has('funding')) {
+            triggeredSignals.current.add('funding');
+            setDealSignals((prev) => ({
+              ...prev,
+              positive: [...prev.positive, '融资到位，采购意愿强'],
+              strength: Math.min(85, prev.strength + 10)
+            }));
+          }
+          if ((currentMsg.text.includes('认真考虑这个方案') || currentMsg.text.includes('可以考虑')) && !triggeredSignals.current.has('consideration')) {
+            triggeredSignals.current.add('consideration');
+            setDealSignals((prev) => ({
+              ...prev,
+              positive: [...prev.positive, '明确表态：认真考虑方案'],
+              strength: Math.min(85, prev.strength + 25)
+            }));
+          }
+          if ((currentMsg.keywords?.includes('竞品') || currentMsg.text.includes('报价更低')) && !triggeredSignals.current.has('competitor')) {
+            triggeredSignals.current.add('competitor');
+            setDealSignals((prev) => ({
+              ...prev,
+              concerns: [...prev.concerns, '价格对比（竞品）'],
+              strength: Math.max(0, prev.strength - 5)
+            }));
+          }
+          if ((currentMsg.keywords?.includes('交付周期') || currentMsg.keywords?.includes('担心')) && !triggeredSignals.current.has('delivery_concern')) {
+            triggeredSignals.current.add('delivery_concern');
+            setDealSignals((prev) => ({
+              ...prev,
+              concerns: [...prev.concerns, '交付周期担忧'],
+              strength: Math.max(0, prev.strength - 5)
+            }));
+          }
+        }
+
         // 如果触发分析，添加分析事件
         if (currentMsg.triggersAnalysis) {
           handleAnalysis(currentMsg);
@@ -308,55 +391,8 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
 
     // 根据关键词触发不同的分析
     if (message.keywords?.includes('报价') || message.keywords?.includes('500万')) {
-      // 添加检索事件
-      setTimeout(() => {
-        setAnalysisEvents((prev) => [
-          ...prev,
-          {
-            id: `${eventId}-retrieval-1`,
-            timestamp: new Date().toLocaleTimeString(),
-            type: 'retrieval',
-            title: '正在检索财务系统...',
-            content: '查询历史报价和成本数据',
-            status: 'loading',
-          },
-        ]);
-      }, 800);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) =>
-          prev.map((e) =>
-            e.id === `${eventId}-retrieval-1`
-              ? { ...e, status: 'completed' as const, content: '找到历史报价记录 12 条，当前成本数据已更新' }
-              : e
-          )
-        );
-      }, 3500);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) => [
-          ...prev,
-          {
-            id: `${eventId}-retrieval-2`,
-            timestamp: new Date().toLocaleTimeString(),
-            type: 'retrieval',
-            title: '正在检索市场数据...',
-            content: '查询行业价格对比',
-            status: 'loading',
-          },
-        ]);
-      }, 4000);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) =>
-          prev.map((e) =>
-            e.id === `${eventId}-retrieval-2`
-              ? { ...e, status: 'completed' as const, content: '行业均价 ¥410-550，我们具有价格优势' }
-              : e
-          )
-        );
-      }, 6500);
-
+      if (triggeredAnalysis.current.has('price')) return;
+      triggeredAnalysis.current.add('price');
       setTimeout(() => {
         setAnalysisEvents((prev) => [
           ...prev,
@@ -365,38 +401,16 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
             timestamp: new Date().toLocaleTimeString(),
             type: 'suggestion',
             title: '💡 价格建议',
-            content: '基于客户预算500万，建议：方案A: 13000单位 × ¥385 = 500万，单价下降5.7%，总量提升40%，利润率18%（安全范围）',
+            content: '基于客户预算500万，**推荐方案A**：\n• 配置：**13000单位 × ¥385** = 500万整\n• 让利幅度：单价下降**5.7%**（客户可接受范围）\n• 优势亮点：总量提升**40%**，我方利润率**18%**（安全区间）',
             source: '数据来源：财务成本系统、历史定价记录',
           },
         ]);
-      }, 7000);
+      }, 1000);
     }
 
     if (message.keywords?.includes('竞品') || message.keywords?.includes('技术优势')) {
-      setTimeout(() => {
-        setAnalysisEvents((prev) => [
-          ...prev,
-          {
-            id: `${eventId}-retrieval-3`,
-            timestamp: new Date().toLocaleTimeString(),
-            type: 'retrieval',
-            title: '正在检索项目文档...',
-            content: '查询POC测试数据',
-            status: 'loading',
-          },
-        ]);
-      }, 800);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) =>
-          prev.map((e) =>
-            e.id === `${eventId}-retrieval-3`
-              ? { ...e, status: 'completed' as const, content: 'POC测试报告：性能提升30%，准确率95%' }
-              : e
-          )
-        );
-      }, 3500);
-
+      if (triggeredAnalysis.current.has('tech')) return;
+      triggeredAnalysis.current.add('tech');
       setTimeout(() => {
         setAnalysisEvents((prev) => [
           ...prev,
@@ -405,14 +419,16 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
             timestamp: new Date().toLocaleTimeString(),
             type: 'suggestion',
             title: '💡 技术优势话术',
-            content: '强调自研算法优势：POC测试中处理速度快30%，准确率高5%。强调性价比而非单纯价格竞争。',
+            content: '**强调自研算法的差异化价值**：\n• POC实测：处理速度快**30%**，准确率高**5%**\n• 定位策略：突出**性价比优势**，而非单纯价格竞争\n• 话术建议：**"更快的处理 + 更高的准确率 = 更低的总体拥有成本"**',
             source: '数据来源：项目管理系统、技术文档',
           },
         ]);
-      }, 4000);
+      }, 1000);
     }
 
     if (message.keywords?.includes('交付周期')) {
+      if (triggeredAnalysis.current.has('delivery')) return;
+      triggeredAnalysis.current.add('delivery');
       setTimeout(() => {
         setAnalysisEvents((prev) => [
           ...prev,
@@ -421,7 +437,7 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
             timestamp: new Date().toLocaleTimeString(),
             type: 'risk',
             title: '⚠️ 风险提示',
-            content: '客户上次会议对交付周期表示担忧，需主动说明优化方案：已从6周缩短至4周，可提供加急服务。',
+            content: '**客户对交付周期有顾虑**（CRM记录）：\n• 历史担忧：上次会议提到"希望尽快上线"\n• **优化方案**：标准流程已从**6周**优化至**4周**\n• **加急选项**：客户可配合需求确认，最快可压缩至**3周**',
             source: '数据来源：CRM交互记录、项目管理',
           },
         ]);
@@ -430,54 +446,8 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
 
     // 技术支持和培训
     if (message.keywords?.includes('技术支持') || message.keywords?.includes('培训')) {
-      setTimeout(() => {
-        setAnalysisEvents((prev) => [
-          ...prev,
-          {
-            id: `${eventId}-retrieval-4`,
-            timestamp: new Date().toLocaleTimeString(),
-            type: 'retrieval',
-            title: '正在检索服务系统...',
-            content: '查询服务团队配置和历史表现',
-            status: 'loading',
-          },
-        ]);
-      }, 800);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) =>
-          prev.map((e) =>
-            e.id === `${eventId}-retrieval-4`
-              ? { ...e, status: 'completed' as const, content: '找到服务团队配置：15人技术支持团队，客户满意度 98.5%' }
-              : e
-          )
-        );
-      }, 3500);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) => [
-          ...prev,
-          {
-            id: `${eventId}-retrieval-5`,
-            timestamp: new Date().toLocaleTimeString(),
-            type: 'retrieval',
-            title: '正在检索培训记录...',
-            content: '查询历史培训数据',
-            status: 'loading',
-          },
-        ]);
-      }, 4000);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) =>
-          prev.map((e) =>
-            e.id === `${eventId}-retrieval-5`
-              ? { ...e, status: 'completed' as const, content: '历史培训数据：87家企业，平均上手周期 1.2 周' }
-              : e
-          )
-        );
-      }, 6500);
-
+      if (triggeredAnalysis.current.has('service')) return;
+      triggeredAnalysis.current.add('service');
       setTimeout(() => {
         setAnalysisEvents((prev) => [
           ...prev,
@@ -486,63 +456,17 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
             timestamp: new Date().toLocaleTimeString(),
             type: 'suggestion',
             title: '💡 服务优势建议',
-            content: '强调服务体系：专属客户成功经理 + 驻场支持 + 定期回访。可提供某科技公司成功案例（3个月 ROI 提升 40%）。',
+            content: '**强调完整服务体系**：\n• **专属客户成功经理** + 7×24h技术支持热线\n• **驻场支持服务**：上线前2周驻场，确保平滑过渡\n• **定期回访机制**：每月主动回访，持续优化\n• **成功案例**：某科技公司（相似规模），**3个月ROI提升40%**',
             source: '数据来源：服务管理系统、客户反馈记录',
           },
         ]);
-      }, 7000);
+      }, 1000);
     }
 
     // 系统集成
     if (message.keywords?.includes('系统集成') || message.keywords?.includes('ERP') || message.keywords?.includes('CRM')) {
-      setTimeout(() => {
-        setAnalysisEvents((prev) => [
-          ...prev,
-          {
-            id: `${eventId}-retrieval-6`,
-            timestamp: new Date().toLocaleTimeString(),
-            type: 'retrieval',
-            title: '正在检索技术文档...',
-            content: '查询集成方案和兼容性',
-            status: 'loading',
-          },
-        ]);
-      }, 800);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) =>
-          prev.map((e) =>
-            e.id === `${eventId}-retrieval-6`
-              ? { ...e, status: 'completed' as const, content: '找到集成方案文档 23 份，支持 SAP/Oracle/Salesforce 等主流系统' }
-              : e
-          )
-        );
-      }, 3500);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) => [
-          ...prev,
-          {
-            id: `${eventId}-retrieval-7`,
-            timestamp: new Date().toLocaleTimeString(),
-            type: 'retrieval',
-            title: '正在检索集成案例...',
-            content: '查询相似规模客户案例',
-            status: 'loading',
-          },
-        ]);
-      }, 4000);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) =>
-          prev.map((e) =>
-            e.id === `${eventId}-retrieval-7`
-              ? { ...e, status: 'completed' as const, content: '相似规模客户集成案例：某物流公司（ERP SAP + CRM Salesforce），集成周期 2 周' }
-              : e
-          )
-        );
-      }, 6500);
-
+      if (triggeredAnalysis.current.has('integration')) return;
+      triggeredAnalysis.current.add('integration');
       setTimeout(() => {
         setAnalysisEvents((prev) => [
           ...prev,
@@ -551,39 +475,17 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
             timestamp: new Date().toLocaleTimeString(),
             type: 'suggestion',
             title: '💡 技术可行性保证',
-            content: '客户使用 SAP ERP，我们有 8 个成功案例。建议强调：提供标准 API 接口 + 技术团队驻场 + 集成测试环境，确保无缝对接。',
+            content: '**客户使用SAP ERP，对接经验丰富**：\n• **成功案例**：已完成**8个**SAP集成项目，成功率100%\n• **技术方案**：提供**标准REST API接口** + 完整技术文档\n• **实施保障**：技术团队**驻场2周** + 独立集成测试环境\n• **时间承诺**：集成周期**2周**（含测试）',
             source: '数据来源：技术文档库、项目管理系统',
           },
         ]);
-      }, 7000);
+      }, 1000);
     }
 
     // 评估和时间节点
     if (message.keywords?.includes('评估') || message.keywords?.includes('一周') || message.keywords?.includes('本季度')) {
-      setTimeout(() => {
-        setAnalysisEvents((prev) => [
-          ...prev,
-          {
-            id: `${eventId}-retrieval-8`,
-            timestamp: new Date().toLocaleTimeString(),
-            type: 'retrieval',
-            title: '正在检索销售策略...',
-            content: '查询相似客户成交周期',
-            status: 'loading',
-          },
-        ]);
-      }, 800);
-
-      setTimeout(() => {
-        setAnalysisEvents((prev) =>
-          prev.map((e) =>
-            e.id === `${eventId}-retrieval-8`
-              ? { ...e, status: 'completed' as const, content: '找到 B 轮融资客户成交周期：平均 8.5 天，成交率 73%' }
-              : e
-          )
-        );
-      }, 3500);
-
+      if (triggeredAnalysis.current.has('followup')) return;
+      triggeredAnalysis.current.add('followup');
       setTimeout(() => {
         setAnalysisEvents((prev) => [
           ...prev,
@@ -592,11 +494,11 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
             timestamp: new Date().toLocaleTimeString(),
             type: 'suggestion',
             title: '💡 跟进策略建议',
-            content: '建议后续行动：① 24小时内发送会议纪要 + 详细报价单  ② 3天内提供技术集成方案白皮书  ③ 5天后主动跟进评估进度  ④ 准备本季度实施计划（9-11月排期）',
+            content: '**建议后续行动时间线**：\n• **24小时内**：发送会议纪要 + 详细报价单\n• **3天内**：提供技术集成方案白皮书\n• **5天后**：主动跟进评估进度（电话 + 邮件）\n• **1周内**：准备本季度实施计划（**9-11月排期**，需提前锁定资源）',
             source: '数据来源：销售 CRM、历史成交记录',
           },
         ]);
-      }, 4500);
+      }, 1000);
 
       setTimeout(() => {
         setAnalysisEvents((prev) => [
@@ -606,21 +508,44 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
             timestamp: new Date().toLocaleTimeString(),
             type: 'risk',
             title: '⚠️ 商机风险提示',
-            content: '注意：客户提到"还需评估"，通常意味着内部还有决策人未参与。建议询问是否需要安排技术演示或高层会面。',
+            content: '**客户说"还需评估"的潜在信号**：\n• 可能原因：内部**还有决策人未参与**本次会议\n• 风险等级：⚠️ 中等（需要进一步确认决策链）\n• **建议行动**：询问"是否需要安排**技术演示**或**高层会面**？哪些同事需要参与决策？"',
             source: '数据来源：商机分析模型',
           },
         ]);
-      }, 5500);
+      }, 1500);
     }
   };
 
-  // 自动滚动
+  // 对话记录自动滚动（仅在用户接近底部时）
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // 获取 CardContent 滚动容器（需要向上两层）
+    const container = messagesEndRef.current?.parentElement?.parentElement;
+    if (container) {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      if (isNearBottom) {
+        // 使用 scrollTop 而不是 scrollIntoView 避免影响页面滚动条
+        setTimeout(() => {
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+          }
+        }, 0);
+      }
+    }
   }, [messages, displayedText]);
 
+  // AI提示自动滚动
   useEffect(() => {
-    analysisEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // 获取 CardContent 滚动容器（需要向上两层）
+    const container = analysisEndRef.current?.parentElement?.parentElement;
+    if (container) {
+      // 总是自动滚动到底部
+      setTimeout(() => {
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }, 0);
+    }
   }, [analysisEvents]);
 
   const getSpeakerColor = (speaker: string) => {
@@ -826,7 +751,9 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-medium mb-1">{event.title}</p>
-                              <p className="text-xs text-muted-foreground leading-relaxed">{event.content}</p>
+                              <div className="text-xs text-muted-foreground leading-relaxed">
+                                {renderFormattedContent(event.content)}
+                              </div>
                               {event.source && (
                                 <p className="text-xs text-muted-foreground mt-2 italic">📊 {event.source}</p>
                               )}
@@ -855,11 +782,11 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
             <div className="grid md:grid-cols-3 gap-6">
               {/* Discussion Topics */}
               <div>
-                <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
+                <h4 className="text-base font-semibold mb-3 flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
                   讨论话题分布
                 </h4>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {(() => {
                     const total = Object.values(topicStats).reduce((a, b) => a + b, 0) || 1;
                     const topics = [
@@ -871,58 +798,101 @@ export const LiveMeetingAssistant = ({ onBack, onShowSummary }: LiveMeetingAssis
                     ];
                     return topics.filter(t => t.value > 0).map((topic) => (
                       <div key={topic.key} className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
                           <div
                             className={`h-full ${topic.color} transition-all duration-500`}
                             style={{ width: `${Math.round((topic.value / total) * 100)}%` }}
                           />
                         </div>
-                        <span className="text-xs text-muted-foreground w-20">
+                        <span className="text-sm text-muted-foreground w-24 font-medium">
                           {topic.label} {Math.round((topic.value / total) * 100)}%
                         </span>
                       </div>
                     ));
                   })()}
                   {Object.values(topicStats).reduce((a, b) => a + b, 0) === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-4">
+                    <p className="text-sm text-muted-foreground text-center py-4">
                       等待会议开始...
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Client Sentiment */}
+              {/* Deal Signal Analysis */}
               <div>
-                <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  客户情绪分析
+                <h4 className="text-base font-semibold mb-3 flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  🎯 成交信号强度
                 </h4>
                 <div className="space-y-3">
-                  {(() => {
-                    const total = sentiment.positive + sentiment.neutral + sentiment.concern || 1;
-                    return (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">😊 积极</span>
-                          <span className="text-sm font-medium text-green-500">
-                            {Math.round((sentiment.positive / total) * 100)}%
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">😐 中性</span>
-                          <span className="text-sm font-medium text-yellow-500">
-                            {Math.round((sentiment.neutral / total) * 100)}%
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm">😟 担忧</span>
-                          <span className="text-sm font-medium text-orange-500">
-                            {Math.round((sentiment.concern / total) * 100)}%
-                          </span>
-                        </div>
-                      </>
-                    );
-                  })()}
+                  {/* Strength Bar */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-muted-foreground font-medium">整体评估</span>
+                      <span className={`text-base font-bold ${
+                        dealSignals.strength >= 70 ? 'text-green-500' :
+                        dealSignals.strength >= 40 ? 'text-yellow-500' : 'text-orange-500'
+                      }`}>
+                        {dealSignals.strength >= 70 ? '强' : dealSignals.strength >= 40 ? '中' : '弱'}
+                      </span>
+                    </div>
+                    <div className="h-4 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-500 ${
+                          dealSignals.strength >= 70 ? 'bg-green-500' :
+                          dealSignals.strength >= 40 ? 'bg-yellow-500' : 'bg-orange-500'
+                        }`}
+                        style={{ width: `${dealSignals.strength}%` }}
+                      />
+                    </div>
+                    <div className="text-right mt-1">
+                      <span className="text-sm font-mono text-muted-foreground font-medium">{dealSignals.strength}%</span>
+                    </div>
+                  </div>
+
+                  {/* Positive Signals */}
+                  {dealSignals.positive.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-1 mb-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                        <span className="text-sm font-medium text-green-500">
+                          正向信号 ({dealSignals.positive.length}个)
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {dealSignals.positive.map((signal, idx) => (
+                          <div key={idx} className="text-sm text-muted-foreground pl-4">
+                            • {signal}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Concerns */}
+                  {dealSignals.concerns.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-1 mb-2">
+                        <AlertTriangle className="w-4 h-4 text-orange-500" />
+                        <span className="text-sm font-medium text-orange-500">
+                          待解决障碍 ({dealSignals.concerns.length}个)
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {dealSignals.concerns.map((concern, idx) => (
+                          <div key={idx} className="text-sm text-muted-foreground pl-4">
+                            • {concern}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {dealSignals.positive.length === 0 && dealSignals.concerns.length === 0 && (
+                    <div className="text-xs text-muted-foreground text-center py-4">
+                      等待会议开始...
+                    </div>
+                  )}
                 </div>
               </div>
 
