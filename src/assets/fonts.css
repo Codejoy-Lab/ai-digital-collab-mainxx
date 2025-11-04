@@ -1,0 +1,55 @@
+/* Noto Sans SC 本地字体定义 */
+
+/* Regular (400) */
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/noto-sans-sc-v39-chinese-simplified_latin-regular.woff2') format('woff2');
+}
+
+/* Medium (500) */
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('./fonts/noto-sans-sc-v39-chinese-simplified_latin-500.woff2') format('woff2');
+}
+
+/* SemiBold (600) */
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/noto-sans-sc-v39-chinese-simplified_latin-600.woff2') format('woff2');
+}
+
+/* Bold (700) */
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/noto-sans-sc-v39-chinese-simplified_latin-700.woff2') format('woff2');
+}
+
+/* ExtraBold (800) */
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('./fonts/noto-sans-sc-v39-chinese-simplified_latin-800.woff2') format('woff2');
+}
+
+/* Black (900) */
+@font-face {
+  font-family: 'Noto Sans SC';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('./fonts/noto-sans-sc-v39-chinese-simplified_latin-900.woff2') format('woff2');
+}
