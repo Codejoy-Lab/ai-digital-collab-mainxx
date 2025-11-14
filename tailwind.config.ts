@@ -61,7 +61,7 @@ export default {
         tech: {
           blue: "hsl(var(--tech-blue))",
           "blue-dark": "hsl(var(--tech-blue-dark))",
-          "blue-light": "hsl(var(--tech-blue-light))",  
+          "blue-light": "hsl(var(--tech-blue-light))",
           green: "hsl(var(--tech-green))",
           "green-glow": "hsl(var(--tech-green-glow))",
           gray: "hsl(var(--tech-gray))",
