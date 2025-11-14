@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Users, Brain, ArrowRight, Sparkles, Zap, FileText } from 'lucide-react';
+import { Users, Brain, ArrowRight, Sparkles, Zap, FileText, Network } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ const Index = () => {
         </div>
 
         {/* Feature Cards */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
           {/* Multi-Agent Collaboration */}
           <div
             className="group cursor-pointer transition-all duration-500 hover:scale-105"
@@ -160,6 +160,68 @@ const Index = () => {
                 size="lg"
               >
                 <span>立即体验</span>
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Merck AI Hub */}
+          <div
+            className="group cursor-pointer transition-all duration-500 hover:scale-105"
+            onClick={() => navigate('/merck-ai-hub')}
+          >
+            <div className="relative overflow-hidden rounded-2xl border-2 border-border/50 bg-gradient-to-br from-background to-tech-blue/5 p-8 h-full backdrop-blur-sm hover:border-tech-blue/50 hover:shadow-[0_0_30px_rgba(var(--tech-blue)/0.3)] transition-all duration-500">
+              {/* Icon */}
+              <div className="mb-6 flex items-center justify-center">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-tech-blue to-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                    <Network className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-tech-green rounded-full flex items-center justify-center animate-pulse">
+                    <FileText className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-3xl font-bold text-foreground mb-3 text-center">
+                Merck AI 能力中枢
+              </h3>
+              <p className="text-xl text-tech-blue/80 mb-6 text-center font-medium">
+                AI Capability Hub
+              </p>
+
+              {/* Description */}
+              <div className="space-y-3 mb-8">
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-tech-blue mt-2 flex-shrink-0" />
+                  <p className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">40+ AI能力：</span>
+                    数据、分析、决策、执行全方位覆盖
+                  </p>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                  <p className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">10大场景：</span>
+                    覆盖财务、供应链、制造、销售等领域
+                  </p>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-tech-green mt-2 flex-shrink-0" />
+                  <p className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">智能编排：</span>
+                    中央编排器统一调度，协同执行
+                  </p>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <Button
+                className="w-full text-lg py-6 bg-tech-blue hover:bg-tech-blue/90 group-hover:scale-105 transition-transform duration-300"
+                size="lg"
+              >
+                <span>探索能力</span>
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
