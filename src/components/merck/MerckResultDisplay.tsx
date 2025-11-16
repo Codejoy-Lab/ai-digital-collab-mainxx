@@ -1,19 +1,22 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, Download, TrendingDown, TrendingUp, AlertTriangle, CheckCircle2, DollarSign, Users, Calendar, BarChart3, FileText, Shield, Factory, Lightbulb, MessageSquare, Target, Network } from 'lucide-react';
+import { ArrowRight, Download, TrendingDown, TrendingUp, AlertTriangle, AlertCircle, CheckCircle2, DollarSign, Users, Calendar, BarChart3, FileText, Shield, Factory, Lightbulb, MessageSquare, Target, Network } from 'lucide-react';
 import { SelectedScenario } from '@/pages/MerckAIHubPage';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MerckResultDisplayProps {
   scenario: SelectedScenario | null;
+  checkpointDecisions?: Record<string, any>;
   onContinue: () => void;
 }
 
-export const MerckResultDisplay = ({ scenario, onContinue }: MerckResultDisplayProps) => {
+export const MerckResultDisplay = ({ scenario, checkpointDecisions = {}, onContinue }: MerckResultDisplayProps) => {
   const { language } = useLanguage();
   const isEnglish = language === 'en';
 
   if (!scenario) return null;
+
+  const hasCheckpoints = Object.keys(checkpointDecisions).length > 0;
 
   // Scenario-specific report templates
   const getScenarioReport = () => {
@@ -1093,61 +1096,168 @@ export const MerckResultDisplay = ({ scenario, onContinue }: MerckResultDisplayP
   };
 
   return (
-    <div className="min-h-screen bg-background px-6 py-12">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-tech-green flex items-center justify-center shadow-lg">
-            <Icon className="w-8 h-8 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{report.title}</h1>
-            <p className="text-muted-foreground">{isEnglish ? scenario.titleEn : scenario.title}</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-tech-green/5" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(200_100%_50%/0.08),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,hsl(125_60%_45%/0.05),transparent_50%)]" />
 
-        {/* Report Sections */}
-        <div className="space-y-8 mb-12">
-          {report.sections.map((section: any, idx: number) => (
-            <Card key={idx} className="p-6 bg-card/50 backdrop-blur-sm border-primary/20">
-              <h2 className="text-xl font-bold text-foreground mb-4">{section.title}</h2>
-              {renderSection(section)}
-            </Card>
-          ))}
-        </div>
-
-        {/* Generated Outputs - At Bottom */}
-        <Card className="p-6 bg-gradient-to-br from-card/50 to-primary/5 border-primary/30 mb-8">
-          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Download className="w-5 h-5 text-primary" />
-            {isEnglish ? 'Generated Outputs' : '生成产出'}
-          </h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {report.outputs.map((output: any, idx: number) => (
-              <div key={idx} className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:border-primary/50 transition-all cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-primary" />
-                  <div>
-                    <div className="font-medium text-foreground group-hover:text-primary transition-colors">{output.name}</div>
-                    <div className="text-xs text-muted-foreground">{output.type} · {output.size}</div>
+      <div className="relative z-10 px-6 py-12">
+        <div className="max-w-7xl mx-auto">
+          {/* Enhanced Header */}
+          <div className="mb-12">
+            <div className="flex items-start gap-6 p-8 rounded-2xl bg-gradient-to-br from-primary/10 via-tech-green/5 to-primary/5 backdrop-blur-sm border-2 border-primary/20 shadow-[0_0_40px_hsl(200_100%_45%/0.15)]">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-tech-green flex items-center justify-center shadow-[0_0_30px_hsl(200_100%_45%/0.4)] flex-shrink-0">
+                <Icon className="w-10 h-10 text-white" />
+              </div>
+              <div className="flex-1">
+                <h1 className="text-4xl font-black mb-2 bg-gradient-to-r from-primary to-tech-green bg-clip-text text-transparent">
+                  {report.title}
+                </h1>
+                <p className="text-lg text-muted-foreground mb-4">{isEnglish ? scenario.titleEn : scenario.title}</p>
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 backdrop-blur-sm border border-primary/30">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    <span className="text-foreground">{new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-tech-green/10 backdrop-blur-sm border border-tech-green/30">
+                    <CheckCircle2 className="w-4 h-4 text-tech-green" />
+                    <span className="text-foreground">{isEnglish ? 'Execution Completed' : '执行完成'}</span>
                   </div>
                 </div>
-                <Download className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </div>
-            ))}
+            </div>
           </div>
-        </Card>
 
-        {/* Action Button */}
-        <div className="flex justify-center">
-          <Button
-            onClick={onContinue}
-            size="lg"
-            className="bg-gradient-to-r from-primary to-tech-green hover:shadow-[0_0_30px_hsl(200_100%_45%/0.5)] transition-all"
-          >
-            {isEnglish ? 'View Value Summary' : '查看价值总结'}
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
+          {/* Report Sections */}
+          <div className="space-y-6 mb-12">
+            {report.sections.map((section: any, idx: number) => (
+              <Card key={idx} className="p-8 bg-card/50 backdrop-blur-sm border-2 border-primary/20 hover:border-primary/40 transition-all shadow-[0_0_20px_hsl(200_100%_45%/0.1)] hover:shadow-[0_0_30px_hsl(200_100%_45%/0.2)]">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-1 h-8 bg-gradient-to-b from-primary to-tech-green rounded-full" />
+                  <h2 className="text-2xl font-bold text-foreground">{section.title}</h2>
+                </div>
+                {renderSection(section)}
+              </Card>
+            ))}
+        </div>
+
+        {/* Human-AI Collaboration Section */}
+        {hasCheckpoints && (() => {
+          // Check if workflow was terminated/rejected
+          const hasRejection = Object.values(checkpointDecisions).some((decision: any) => {
+            const option = decision?.option;
+            return option?.risk === true || option?.id?.includes('reject') || option?.id?.includes('cancel') || option?.id?.includes('manual');
+          });
+
+          return (
+            <Card className={`p-8 mb-8 border-2 shadow-[0_0_30px_hsl(200_100%_45%/0.15)] ${hasRejection ? 'bg-gradient-to-br from-red-500/5 to-orange-500/5 border-red-500/40' : 'bg-gradient-to-br from-primary/5 to-tech-green/5 border-primary/30'}`}>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-tech-green flex items-center justify-center shadow-lg">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-foreground">
+                  {isEnglish ? 'Human-AI Collaboration Record' : '人机协同记录'}
+                </h2>
+              </div>
+              <div className="space-y-4">
+                {Object.entries(checkpointDecisions).map(([stepId, decision]: [string, any]) => {
+                  const option = decision?.option;
+                  const isRisk = option?.risk === true;
+                  const isReject = option?.id?.includes('reject');
+                  const isCancel = option?.id?.includes('cancel');
+                  const isManual = option?.id?.includes('manual');
+                  const isNegative = isRisk || isReject || isCancel || isManual;
+
+                  return (
+                    <div key={stepId} className={`flex items-start gap-5 p-5 rounded-xl border-2 backdrop-blur-sm transition-all hover:shadow-lg ${isNegative ? 'bg-red-500/5 border-red-500/40 hover:border-red-500/60' : 'bg-background/80 border-primary/20 hover:border-primary/40'}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${isNegative ? 'bg-red-500/10 ring-2 ring-red-500/20' : 'bg-primary/10 ring-2 ring-primary/20'}`}>
+                        {isReject ? (
+                          <AlertTriangle className="w-6 h-6 text-red-500" />
+                        ) : isCancel || isManual ? (
+                          <AlertCircle className="w-6 h-6 text-orange-500" />
+                        ) : (
+                          <CheckCircle2 className="w-6 h-6 text-primary" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className={`font-bold text-lg ${isNegative ? 'text-red-500' : 'text-foreground'}`}>
+                            {decision.option?.labelEn && isEnglish ? decision.option.labelEn : decision.option?.label || 'Decision Made'}
+                          </h3>
+                          <span className="text-xs text-muted-foreground px-3 py-1 rounded-full bg-background/50">
+                            {new Date(decision.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Users className="w-4 h-4" />
+                          <span className="font-medium">{isEnglish ? decision.operator : decision.operatorCn}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-6 pt-6 border-t-2 border-border/30">
+                <div className={`flex items-center gap-3 p-4 rounded-xl ${hasRejection ? 'bg-orange-500/10 border-2 border-orange-500/30' : 'bg-primary/10 border-2 border-primary/30'}`}>
+                  <AlertCircle className={`w-5 h-5 flex-shrink-0 ${hasRejection ? 'text-orange-500' : 'text-primary'}`} />
+                  <span className="text-sm font-medium text-foreground">
+                    {hasRejection
+                      ? (isEnglish
+                        ? `Workflow terminated by human decision. ${Object.keys(checkpointDecisions).length} decision point(s) involved.`
+                        : `流程因人工决策而终止，涉及 ${Object.keys(checkpointDecisions).length} 个决策点。`
+                      )
+                      : (isEnglish
+                        ? `${Object.keys(checkpointDecisions).length} human decision point(s) in this workflow, demonstrating AI-assisted decision making.`
+                        : `本次流程包含 ${Object.keys(checkpointDecisions).length} 个人工决策点，体现AI辅助决策的价值。`
+                      )
+                    }
+                  </span>
+                </div>
+              </div>
+            </Card>
+          );
+        })()}
+
+          {/* Generated Outputs - At Bottom */}
+          <Card className="p-8 bg-gradient-to-br from-card/50 to-primary/5 border-2 border-primary/30 mb-12 shadow-[0_0_20px_hsl(200_100%_45%/0.1)]">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-tech-green flex items-center justify-center shadow-lg">
+                <Download className="w-6 h-6 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground">
+                {isEnglish ? 'Generated Outputs' : '生成产出'}
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              {report.outputs.map((output: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between p-5 bg-background/80 backdrop-blur-sm rounded-xl border-2 border-border hover:border-primary/50 hover:shadow-[0_0_15px_hsl(200_100%_45%/0.2)] transition-all cursor-pointer group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <FileText className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-foreground group-hover:text-primary transition-colors">{output.name}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{output.type} · {output.size}</div>
+                    </div>
+                  </div>
+                  <Download className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Action Button */}
+          <div className="flex justify-center pt-4">
+            <Button
+              onClick={onContinue}
+              size="lg"
+              className="px-8 py-6 text-lg font-bold bg-gradient-to-r from-primary to-tech-green hover:shadow-[0_0_40px_hsl(200_100%_45%/0.6)] hover:scale-105 transition-all"
+            >
+              {isEnglish ? 'View Value Summary' : '查看价值总结'}
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

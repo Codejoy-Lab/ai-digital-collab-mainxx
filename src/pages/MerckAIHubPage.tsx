@@ -36,6 +36,7 @@ export interface WorkflowStep {
 const MerckAIHubPage = () => {
   const [currentStep, setCurrentStep] = useState<MerckDemoStep>('entry');
   const [selectedScenario, setSelectedScenario] = useState<SelectedScenario | null>(null);
+  const [checkpointDecisions, setCheckpointDecisions] = useState<Record<string, any>>({});
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const goToStep = (step: MerckDemoStep) => {
@@ -62,13 +63,19 @@ const MerckAIHubPage = () => {
               setSelectedScenario(scenario);
             }}
             onBack={() => goToStep('entry')}
-            onScenarioComplete={() => goToStep('results')}
+            onScenarioComplete={(decisions) => {
+              if (decisions) {
+                setCheckpointDecisions(decisions);
+              }
+              goToStep('results');
+            }}
           />
         );
       case 'results':
         return (
           <MerckResultDisplay
             scenario={selectedScenario}
+            checkpointDecisions={checkpointDecisions}
             onContinue={() => goToStep('collection')}
           />
         );

@@ -13,11 +13,12 @@ import { SelectedScenario, WorkflowStep } from '@/pages/MerckAIHubPage';
 import { buildApiUrl, WS_BASE_URL } from '@/config/api.config';
 import ReactMarkdown from 'react-markdown';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { CheckpointDialog } from './CheckpointDialog';
 
 interface CapabilityMatrixLayerProps {
   onScenarioSelect: (scenario: SelectedScenario) => void;
   onBack: () => void;
-  onScenarioComplete: () => void;
+  onScenarioComplete: (checkpointDecisions?: Record<string, any>) => void;
 }
 
 interface AICapability {
@@ -77,6 +78,9 @@ export const CapabilityMatrixLayer = ({
   const [isOrchestratorActive, setIsOrchestratorActive] = useState(false);
   const [dispatchingCapabilities, setDispatchingCapabilities] = useState<string[]>([]);
   const [stepDynamicMessages, setStepDynamicMessages] = useState<Record<string, string[]>>({});
+  const [currentCheckpoint, setCurrentCheckpoint] = useState<any | null>(null);
+  const [showCheckpoint, setShowCheckpoint] = useState(false);
+  const [checkpointDecisions, setCheckpointDecisions] = useState<Record<string, any>>({});
   const canvasRef = useRef<HTMLDivElement>(null);
   const [sessionId] = useState(`merck_${Date.now()}`);
   const wsRef = useRef<WebSocket | null>(null);
@@ -235,6 +239,58 @@ export const CapabilityMatrixLayer = ({
           detailsEn: ['Risk-based segmentation', 'Recommend collection pace', 'Select channels', 'Provide script templates']
         },
         {
+          id: 'checkpoint-a2-1',
+          type: 'checkpoint',
+          capabilityId: 'exec-01',
+          capabilityName: '确认高风险客户催收策略',
+          capabilityNameEn: 'Confirm Collection Strategy',
+          action: '审核高风险客户催收策略',
+          actionEn: 'Review high-risk customer collection strategy',
+          duration: 0,
+          details: ['确认AI识别结果', '评估催收策略', '选择执行方案'],
+          detailsEn: ['Confirm AI identification', 'Evaluate collection strategy', 'Select execution plan'],
+          checkpoint: {
+            checkpointType: 'decide',
+            title: '高风险客户催收策略确认',
+            titleEn: 'High-Risk Customer Collection Strategy',
+            description: 'AI识别28个高风险客户，总应收¥4,235万，请确认催收策略',
+            descriptionEn: 'AI identified 28 high-risk customers with ¥42.35M AR, please confirm strategy',
+            capabilityName: '催收策略能力',
+            capabilityNameEn: 'Collection Strategy',
+            summary: {
+              'High-Risk Customers': '28',
+              'Total AR': '¥4,235万',
+              'Avg Overdue': '47 days',
+              'Estimated Recovery': '82%'
+            },
+            aiInsights: {
+              'Critical (>90d)': '8 customers',
+              'High (60-90d)': '12 customers',
+              'Medium (30-60d)': '8 customers',
+              'Recovery Rate': '82% expected'
+            },
+            options: [
+              {
+                id: 'approve-ai',
+                label: '批准AI推荐策略',
+                labelEn: 'Approve AI strategy',
+                primary: true
+              },
+              {
+                id: 'adjust',
+                label: '调整部分客户策略',
+                labelEn: 'Adjust for some customers'
+              },
+              {
+                id: 'manual',
+                label: '转人工全面审核',
+                labelEn: 'Manual review required',
+                risk: true
+              }
+            ]
+          }
+        },
+        {
           id: 'w3',
           capabilityId: 'exec-02',
           capabilityName: '升级决策能力',
@@ -281,6 +337,91 @@ export const CapabilityMatrixLayer = ({
           detailsEn: ['Financial statement retrieval', 'Media monitoring', 'Sanction list check', 'ESG report analysis']
         },
         {
+          id: 'checkpoint-a3-1',
+          type: 'checkpoint',
+          capabilityId: 'data-03',
+          capabilityName: '专员确认数据完整性',
+          capabilityNameEn: 'Data Completeness Review',
+          action: '审核供应商数据完整性',
+          actionEn: 'Review supplier data completeness',
+          duration: 0,
+          details: ['检查数据源覆盖', '评估数据质量', '确认缺失项', '决定是否继续'],
+          detailsEn: ['Check data source coverage', 'Assess data quality', 'Identify gaps', 'Decide next steps'],
+          checkpoint: {
+            checkpointType: 'review',
+            title: '供应商数据完整性审核',
+            titleEn: 'Supplier Data Completeness Review',
+            description: 'AI已收集供应商Acme Chemicals Inc.的多源信息，请确认数据完整性',
+            descriptionEn: 'AI collected multi-source data for Acme Chemicals Inc., please confirm completeness',
+            capabilityName: '信息收集能力',
+            capabilityNameEn: 'Info Gathering',
+            summary: {
+              'Supplier': 'Acme Chemicals Inc.',
+              'Data Sources': '18 sources',
+              'Completeness': '92%',
+              'Last Updated': '2 hours ago'
+            },
+            aiInsights: {
+              'Financial Data': 'Complete (5 years)',
+              'Legal Records': 'Complete',
+              'ESG Reports': 'Partial (2023-2024)',
+              'Media Coverage': 'Complete'
+            },
+            anomalies: [
+              {
+                equipment: '财务数据',
+                equipmentEn: 'Financial Data',
+                severity: 'info',
+                signals: [
+                  { type: '年报', value: '2019-2024 (6年)', status: 'normal' },
+                  { type: '审计报告', value: '已获取', status: 'normal' },
+                  { type: '现金流报表', value: '已获取', status: 'normal' }
+                ]
+              },
+              {
+                equipment: '合规记录',
+                equipmentEn: 'Compliance Records',
+                severity: 'info',
+                signals: [
+                  { type: '制裁名单', value: '无匹配', status: 'normal' },
+                  { type: '诉讼记录', value: '2起已结案', status: 'normal' },
+                  { type: 'FDA记录', value: '1起warning letter (2022)', status: 'normal' }
+                ]
+              },
+              {
+                equipment: 'ESG数据',
+                equipmentEn: 'ESG Data',
+                severity: 'warning',
+                signals: [
+                  { type: 'ESG报告', value: '仅2023-2024', status: 'abnormal' },
+                  { type: '碳排放数据', value: '已获取', status: 'normal' },
+                  { type: '员工安全记录', value: '未完整获取', status: 'abnormal' }
+                ],
+                aiRecommendation: 'ESG historical data incomplete. Recommend requesting 2020-2022 reports from supplier.'
+              }
+            ],
+            options: [
+              {
+                id: 'confirm',
+                label: '确认数据完整，继续分析',
+                labelEn: 'Confirm data, continue analysis',
+                primary: true
+              },
+              {
+                id: 'request-more',
+                label: '要求补充ESG历史数据',
+                labelEn: 'Request additional ESG data'
+              },
+              {
+                id: 'manual-review',
+                label: '转人工深度审查',
+                labelEn: 'Escalate to manual review',
+                risk: true
+              }
+            ]
+          }
+        },
+        {
           id: 'w2',
           capabilityId: 'analysis-03',
           capabilityName: '风险分析能力',
@@ -303,6 +444,100 @@ export const CapabilityMatrixLayer = ({
           detailsEn: ['Global + local rules integration', 'Calculate comprehensive score', 'Natural language explanation', 'Peer benchmark comparison']
         },
         {
+          id: 'checkpoint-a3-2',
+          type: 'checkpoint',
+          capabilityId: 'decision-01',
+          capabilityName: '经理评估风险等级',
+          capabilityNameEn: 'Manager Risk Assessment',
+          action: '评估供应商风险等级',
+          actionEn: 'Assess supplier risk level',
+          duration: 0,
+          details: ['审核六维度评分', '对比行业基准', '评估风险可控性', '决定是否继续'],
+          detailsEn: ['Review 6-dimensional scores', 'Compare to peers', 'Assess risk tolerance', 'Decide continuation'],
+          checkpoint: {
+            checkpointType: 'decide',
+            title: '供应商风险等级评估',
+            titleEn: 'Supplier Risk Level Assessment',
+            description: 'AI完成六维度风险评分，综合得分68/100（中等风险），请评估是否继续',
+            descriptionEn: 'AI completed 6-dimensional risk scoring, overall 68/100 (medium risk), please assess',
+            capabilityName: '评分解释能力',
+            capabilityNameEn: 'Score Explanation',
+            summary: {
+              'Overall Score': '68/100',
+              'Risk Level': 'Medium',
+              'Confidence': '91%',
+              'Peer Avg': '72/100'
+            },
+            aiInsights: {
+              'Financial': '75/100 (Good)',
+              'Legal': '82/100 (Good)',
+              'ESG': '58/100 (Fair)',
+              'Delivery': '71/100 (Good)',
+              'Quality': '64/100 (Fair)',
+              'Innovation': '60/100 (Fair)'
+            },
+            anomalies: [
+              {
+                equipment: '财务健康',
+                equipmentEn: 'Financial Health',
+                severity: 'info',
+                signals: [
+                  { type: 'Revenue Growth', value: '+12% YoY', status: 'normal' },
+                  { type: 'Debt Ratio', value: '0.45', status: 'normal' },
+                  { type: 'Current Ratio', value: '2.1', status: 'normal' }
+                ],
+                aiRecommendation: 'Financial metrics healthy, stable growth trajectory.'
+              },
+              {
+                equipment: 'ESG表现',
+                equipmentEn: 'ESG Performance',
+                severity: 'warning',
+                signals: [
+                  { type: 'Carbon Intensity', value: 'High vs peers', status: 'abnormal' },
+                  { type: 'Safety Incidents', value: '3 in 2024', status: 'abnormal' },
+                  { type: 'Diversity Score', value: '62/100', status: 'normal' }
+                ],
+                aiRecommendation: 'ESG performance below industry average. Recommend quarterly ESG monitoring.'
+              },
+              {
+                equipment: '质量体系',
+                equipmentEn: 'Quality System',
+                severity: 'warning',
+                signals: [
+                  { type: 'ISO Certification', value: 'Valid until 2026', status: 'normal' },
+                  { type: 'FDA Warnings', value: '1 in 2022', status: 'abnormal' },
+                  { type: 'Batch Rejection', value: '2.3%', status: 'abnormal' }
+                ],
+                aiRecommendation: 'Quality performance acceptable but requires enhanced incoming QC.'
+              }
+            ],
+            aiRecommendation: {
+              reason: '建议条件通过。供应商财务和法律风险低，但ESG和质量表现需要加强监控。建议设置季度复审和强化来料检验。',
+              reasonEn: 'Recommend conditional approval. Low financial and legal risk, but ESG and quality require enhanced monitoring. Suggest quarterly reviews and strengthened incoming QC.',
+              confidence: 91
+            },
+            options: [
+              {
+                id: 'continue',
+                label: '风险可控，继续审批流程',
+                labelEn: 'Risk acceptable, continue approval',
+                primary: true
+              },
+              {
+                id: 'conditional',
+                label: '要求供应商整改后继续',
+                labelEn: 'Require corrective actions first'
+              },
+              {
+                id: 'reject',
+                label: '风险过高，拒绝准入',
+                labelEn: 'Risk too high, reject',
+                risk: true
+              }
+            ]
+          }
+        },
+        {
           id: 'w4',
           capabilityId: 'decision-02',
           capabilityName: '决策支持能力',
@@ -312,6 +547,96 @@ export const CapabilityMatrixLayer = ({
           duration: 3000,
           details: ['通过/条件通过/拒绝', '配套风控措施', '复审周期建议', '合同条款建议'],
           detailsEn: ['Approve/Conditional/Reject', 'Risk mitigation measures', 'Review cycle recommendation', 'Contract term suggestions']
+        },
+        {
+          id: 'checkpoint-a3-3',
+          type: 'checkpoint',
+          capabilityId: 'decision-02',
+          capabilityName: '总监最终批准',
+          capabilityNameEn: 'Director Final Approval',
+          action: '最终批准供应商准入',
+          actionEn: 'Final approval for supplier onboarding',
+          duration: 0,
+          details: ['审核AI建议方案', '评估风控措施', '考虑业务影响', '做出最终决策'],
+          detailsEn: ['Review AI recommendation', 'Assess risk measures', 'Consider business impact', 'Make final decision'],
+          checkpoint: {
+            checkpointType: 'approve',
+            title: '供应商准入最终批准',
+            titleEn: 'Supplier Onboarding Final Approval',
+            description: 'AI建议"条件通过"，配套5项风控措施，请最终批准',
+            descriptionEn: 'AI recommends "Conditional Approval" with 5 risk mitigation measures, final approval required',
+            capabilityName: '决策支持能力',
+            capabilityNameEn: 'Decision Support',
+            summary: {
+              'Recommendation': 'Conditional Approval',
+              'Risk Measures': '5 items',
+              'Review Cycle': 'Quarterly',
+              'Contract Terms': '8 special clauses'
+            },
+            plans: [
+              {
+                id: 'conditional',
+                name: '条件通过（AI推荐）',
+                nameEn: 'Conditional Approval (AI Recommended)',
+                description: '准许准入，但需执行5项风控措施',
+                recommended: true,
+                impact: {
+                  'Risk Mitigation': '5 measures',
+                  'Review Frequency': 'Quarterly',
+                  'Initial Order Limit': '≤ ¥200万/月',
+                  'Quality Inspection': 'Enhanced (100%)'
+                }
+              },
+              {
+                id: 'approve',
+                name: '无条件通过',
+                nameEn: 'Unconditional Approval',
+                description: '正常准入，标准风控措施',
+                impact: {
+                  'Risk Mitigation': 'Standard',
+                  'Review Frequency': 'Annual',
+                  'Initial Order Limit': 'No limit',
+                  'Quality Inspection': 'Standard (sampling)'
+                }
+              },
+              {
+                id: 'reject',
+                name: '拒绝准入',
+                nameEn: 'Reject',
+                description: '风险过高，拒绝合作',
+                impact: {
+                  'Alternative Sourcing': 'Required',
+                  'Timeline Impact': '+3-6 months',
+                  'Cost Impact': 'Potentially +15%',
+                  'Risk Elimination': '100%'
+                }
+              }
+            ],
+            aiRecommendation: {
+              reason: '条件通过是平衡风险与业务需求的最优方案。通过强化监控和来料检验，可有效控制ESG和质量风险。完全拒绝将导致采购周期延长3-6个月。',
+              reasonEn: 'Conditional approval optimally balances risk and business needs. Enhanced monitoring and incoming QC effectively mitigate ESG and quality risks. Complete rejection would delay procurement by 3-6 months.',
+              confidence: 89
+            },
+            options: [
+              {
+                id: 'approve-conditional',
+                label: '批准条件通过方案',
+                labelEn: 'Approve conditional plan',
+                primary: true
+              },
+              {
+                id: 'approve-full',
+                label: '批准无条件通过',
+                labelEn: 'Approve unconditionally'
+              },
+              {
+                id: 'reject-supplier',
+                label: '拒绝供应商准入',
+                labelEn: 'Reject supplier',
+                risk: true
+              }
+            ]
+          }
         },
         {
           id: 'w5',
@@ -358,6 +683,95 @@ export const CapabilityMatrixLayer = ({
           duration: 4500,
           details: ['库存约束分析', '产能瓶颈识别', '物料可用性检查', '多场景方案生成'],
           detailsEn: ['Inventory constraint analysis', 'Capacity bottleneck identification', 'Material availability check', 'Multi-scenario plan generation']
+        },
+        {
+          id: 'checkpoint-b1-1',
+          type: 'checkpoint',
+          capabilityId: 'decision-03',
+          capabilityName: '选择产销调整方案',
+          capabilityNameEn: 'Select Adjustment Plan',
+          action: '选择产销平衡调整方案',
+          actionEn: 'Select supply-demand adjustment plan',
+          duration: 0,
+          details: ['对比三套方案', '评估业务优先级', '考虑成本影响', '选择执行方案'],
+          detailsEn: ['Compare 3 plans', 'Assess business priority', 'Consider cost impact', 'Select execution plan'],
+          checkpoint: {
+            checkpointType: 'decide',
+            title: '产销平衡调整方案选择',
+            titleEn: 'Supply-Demand Adjustment Plan Selection',
+            description: 'AI生成3套调整方案，请根据业务优先级选择',
+            descriptionEn: 'AI generated 3 adjustment plans, please select based on business priority',
+            capabilityName: '库存产能优化',
+            capabilityNameEn: 'Inventory Optimization',
+            summary: {
+              'Supply Gap': '¥1,850万',
+              'Excess Inventory': '¥920万',
+              'Affected SKUs': '156',
+              'Planning Horizon': 'Q1 2025'
+            },
+            plans: [
+              {
+                id: 'conservative',
+                name: '保守方案：优先保供应',
+                nameEn: 'Conservative: Prioritize supply',
+                description: '增加产能，确保关键SKU供应',
+                impact: {
+                  'Service Level': '98%',
+                  'Inventory Cost': '+¥680万',
+                  'Production OT': '15%',
+                  'Stockout Risk': '1%'
+                }
+              },
+              {
+                id: 'balanced',
+                name: '平衡方案：AI推荐',
+                nameEn: 'Balanced: AI recommended',
+                description: '适度增产，部分调拨优化',
+                recommended: true,
+                impact: {
+                  'Service Level': '95%',
+                  'Inventory Cost': '+¥320万',
+                  'Production OT': '8%',
+                  'Stockout Risk': '3%'
+                }
+              },
+              {
+                id: 'aggressive',
+                name: '激进方案：优先降库存',
+                nameEn: 'Aggressive: Prioritize inventory reduction',
+                description: '减少生产，加速去库存',
+                impact: {
+                  'Service Level': '91%',
+                  'Inventory Cost': '-¥150万',
+                  'Production OT': '0%',
+                  'Stockout Risk': '7%'
+                }
+              }
+            ],
+            aiRecommendation: {
+              reason: '推荐平衡方案。在保证95%服务水平的前提下，合理控制库存成本和加班时间。',
+              reasonEn: 'Balanced plan recommended. Maintains 95% service level while controlling inventory cost and overtime.',
+              confidence: 87
+            },
+            options: [
+              {
+                id: 'select-balanced',
+                label: '选择平衡方案',
+                labelEn: 'Select balanced plan',
+                primary: true
+              },
+              {
+                id: 'select-conservative',
+                label: '选择保守方案',
+                labelEn: 'Select conservative plan'
+              },
+              {
+                id: 'select-aggressive',
+                label: '选择激进方案',
+                labelEn: 'Select aggressive plan'
+              }
+            ]
+          }
         },
         {
           id: 'w3',
@@ -417,6 +831,97 @@ export const CapabilityMatrixLayer = ({
           detailsEn: ['Process parameter comparison', 'Historical batch analysis', 'Quality risk identification', 'Process adjustment suggestions']
         },
         {
+          id: 'checkpoint-b2-1',
+          type: 'checkpoint',
+          capabilityId: 'analysis-08',
+          capabilityName: '工程师审核异常',
+          capabilityNameEn: 'Engineer Review',
+          action: '审核设备异常信号',
+          actionEn: 'Review equipment anomalies',
+          duration: 0,
+          details: ['确认AI检测结果', '评估风险等级', '调整处理优先级', '决定处理方案'],
+          detailsEn: ['Confirm AI detection', 'Assess risk level', 'Adjust priority', 'Decide handling plan'],
+          checkpoint: {
+            checkpointType: 'review',
+            title: '设备异常审核',
+            titleEn: 'Equipment Anomaly Review',
+            description: 'AI检测到5台设备存在异常信号，请审核确认处理优先级',
+            descriptionEn: 'AI detected anomalies in 5 equipment units, please review and confirm handling priority',
+            capabilityName: '质量风险分析',
+            capabilityNameEn: 'Quality Risk',
+            aiInsights: {
+              'Scanned': '37 units',
+              'Anomalies': '5 critical',
+              'Risk Level': 'High',
+              'Confidence': '94%'
+            },
+            anomalies: [
+              {
+                equipment: '反应釜 R-302',
+                equipmentEn: 'Reactor R-302',
+                severity: 'critical',
+                signals: [
+                  { type: 'Temperature', value: '142°C', status: 'abnormal' },
+                  { type: 'Pressure', value: '3.2 bar', status: 'normal' },
+                  { type: 'Vibration', value: '8.3 mm/s', status: 'abnormal' }
+                ],
+                prediction: {
+                  failureProbability: 78,
+                  timeToFailure: '18-24 hours'
+                },
+                aiRecommendation: 'Immediate inspection recommended. Temperature and vibration exceed safe thresholds.'
+              },
+              {
+                equipment: '离心机 C-105',
+                equipmentEn: 'Centrifuge C-105',
+                severity: 'warning',
+                signals: [
+                  { type: 'Vibration', value: '6.1 mm/s', status: 'abnormal' },
+                  { type: 'Current', value: '22.5 A', status: 'normal' }
+                ],
+                prediction: {
+                  failureProbability: 45,
+                  timeToFailure: '3-5 days'
+                },
+                aiRecommendation: 'Schedule maintenance within 48 hours. Bearing wear suspected.'
+              },
+              {
+                equipment: '干燥机 D-201',
+                equipmentEn: 'Dryer D-201',
+                severity: 'warning',
+                signals: [
+                  { type: 'Temperature', value: '88°C', status: 'abnormal' },
+                  { type: 'Humidity', value: '42%', status: 'normal' }
+                ],
+                prediction: {
+                  failureProbability: 35,
+                  timeToFailure: '5-7 days'
+                },
+                aiRecommendation: 'Monitor closely. Heating element efficiency declining.'
+              }
+            ],
+            options: [
+              {
+                id: 'confirm',
+                label: '确认异常，继续分析',
+                labelEn: 'Confirm anomalies, continue',
+                primary: true
+              },
+              {
+                id: 'adjust',
+                label: '调整优先级后继续',
+                labelEn: 'Adjust priority and continue'
+              },
+              {
+                id: 'cancel',
+                label: '暂停流程，人工处理',
+                labelEn: 'Pause for manual handling',
+                risk: true
+              }
+            ]
+          }
+        },
+        {
           id: 'w3',
           capabilityId: 'exec-04',
           capabilityName: '维护派工能力',
@@ -426,6 +931,101 @@ export const CapabilityMatrixLayer = ({
           duration: 4500,
           details: ['推荐维护时机', '平衡订单优先级', '生成维护工单', '智能派工调度'],
           detailsEn: ['Recommend maintenance timing', 'Balance order priority', 'Generate work orders', 'Intelligent dispatch']
+        },
+        {
+          id: 'checkpoint-b2-2',
+          type: 'checkpoint',
+          capabilityId: 'exec-04',
+          capabilityName: '经理批准维护计划',
+          capabilityNameEn: 'Manager Approval',
+          action: '批准设备维护计划',
+          actionEn: 'Approve maintenance plan',
+          duration: 0,
+          details: ['对比维护方案', '评估停机影响', '考虑订单交付', '选择执行方案'],
+          detailsEn: ['Compare maintenance plans', 'Assess downtime impact', 'Consider delivery', 'Select execution plan'],
+          checkpoint: {
+            checkpointType: 'approve',
+            title: '维护计划批准',
+            titleEn: 'Maintenance Plan Approval',
+            description: 'AI生成了3套维护方案，平衡停机时间与风险，请选择执行方案',
+            descriptionEn: 'AI generated 3 maintenance plans balancing downtime and risk, please select one',
+            capabilityName: '维护派工能力',
+            capabilityNameEn: 'Maintenance Dispatch',
+            summary: {
+              'Total Equipment': '5 units',
+              'Total Downtime': '14-18 hours',
+              'Est. Cost': '¥235万',
+              'Risk Reduction': '85%'
+            },
+            plans: [
+              {
+                id: 'aggressive',
+                name: '激进方案：立即全面维护',
+                nameEn: 'Aggressive: Immediate full maintenance',
+                description: '所有5台设备立即停机维护',
+                impact: {
+                  'Downtime': '18 hours',
+                  'Production Loss': '¥315万',
+                  'Risk Reduction': '95%',
+                  'Delivery Impact': '2 orders delayed'
+                }
+              },
+              {
+                id: 'balanced',
+                name: '平衡方案：分批次维护',
+                nameEn: 'Balanced: Staged maintenance',
+                description: '高风险设备优先，分2批维护',
+                recommended: true,
+                impact: {
+                  'Downtime': '14 hours',
+                  'Production Loss': '¥235万',
+                  'Risk Reduction': '85%',
+                  'Delivery Impact': '1 order delayed'
+                }
+              },
+              {
+                id: 'conservative',
+                name: '保守方案：仅紧急维护',
+                nameEn: 'Conservative: Emergency only',
+                description: '仅维护R-302，其他监控',
+                impact: {
+                  'Downtime': '6 hours',
+                  'Production Loss': '¥85万',
+                  'Risk Reduction': '45%',
+                  'Delivery Impact': 'No delay'
+                }
+              }
+            ],
+            aiRecommendation: {
+              reason: '推荐平衡方案。可在保证订单交付的前提下，最大程度降低设备故障风险，避免更大损失。',
+              reasonEn: 'Balanced plan recommended. Maximizes risk reduction while maintaining delivery commitments, preventing larger losses.',
+              confidence: 88
+            },
+            options: [
+              {
+                id: 'approve-balanced',
+                label: '批准平衡方案',
+                labelEn: 'Approve balanced plan',
+                primary: true
+              },
+              {
+                id: 'approve-aggressive',
+                label: '批准激进方案',
+                labelEn: 'Approve aggressive plan'
+              },
+              {
+                id: 'approve-conservative',
+                label: '批准保守方案',
+                labelEn: 'Approve conservative plan'
+              },
+              {
+                id: 'reject',
+                label: '驳回，重新生成',
+                labelEn: 'Reject and regenerate',
+                risk: true
+              }
+            ]
+          }
         },
         {
           id: 'w4',
@@ -610,6 +1210,97 @@ export const CapabilityMatrixLayer = ({
           detailsEn: ['New product opportunities', 'Solution white spaces', 'Competitive pressure points', 'Policy & regulatory risks']
         },
         {
+          id: 'checkpoint-c3-1',
+          type: 'checkpoint',
+          capabilityId: 'decision-04',
+          capabilityName: '选择优先追踪机会',
+          capabilityNameEn: 'Select Priority Opportunities',
+          action: '选择优先市场机会',
+          actionEn: 'Select priority market opportunities',
+          duration: 0,
+          details: ['审核AI识别结果', '评估市场潜力', '考虑竞争态势', '选择Top 3机会'],
+          detailsEn: ['Review AI identification', 'Assess market potential', 'Consider competition', 'Select Top 3'],
+          checkpoint: {
+            checkpointType: 'decide',
+            title: '市场机会优先级选择',
+            titleEn: 'Market Opportunity Prioritization',
+            description: 'AI识别11个市场机会，请选择优先追踪的Top 3机会',
+            descriptionEn: 'AI identified 11 market opportunities, please select top 3 to prioritize',
+            capabilityName: '机会识别能力',
+            capabilityNameEn: 'Opportunity ID',
+            summary: {
+              'Total Opportunities': '11',
+              'High Potential': '4',
+              'Medium Potential': '5',
+              'Early Stage': '2'
+            },
+            aiInsights: {
+              'mRNA Vaccines': 'High growth (45% CAGR)',
+              'Cell Therapy': 'Emerging (23% CAGR)',
+              'AI Diagnostics': 'High potential (38% CAGR)',
+              'Green Chemistry': 'Policy-driven (18% CAGR)'
+            },
+            anomalies: [
+              {
+                equipment: 'mRNA疫苗技术',
+                equipmentEn: 'mRNA Vaccine Technology',
+                severity: 'info',
+                signals: [
+                  { type: 'Market Size', value: '$28B by 2028', status: 'normal' },
+                  { type: 'Growth Rate', value: '45% CAGR', status: 'normal' },
+                  { type: 'Competition', value: 'High intensity', status: 'abnormal' }
+                ],
+                aiRecommendation: 'High growth market but intense competition. Focus on niche applications.'
+              },
+              {
+                equipment: '细胞治疗',
+                equipmentEn: 'Cell Therapy',
+                severity: 'warning',
+                signals: [
+                  { type: 'Market Size', value: '$12B by 2028', status: 'normal' },
+                  { type: 'Growth Rate', value: '23% CAGR', status: 'normal' },
+                  { type: 'Regulatory', value: 'Uncertain', status: 'abnormal' }
+                ],
+                aiRecommendation: 'Emerging market with regulatory uncertainty. Monitor closely.'
+              },
+              {
+                equipment: 'AI诊断技术',
+                equipmentEn: 'AI Diagnostics',
+                severity: 'info',
+                signals: [
+                  { type: 'Market Size', value: '$18B by 2028', status: 'normal' },
+                  { type: 'Growth Rate', value: '38% CAGR', status: 'normal' },
+                  { type: 'Competition', value: 'Moderate', status: 'normal' }
+                ],
+                aiRecommendation: 'Strong opportunity with balanced risk-reward profile.'
+              }
+            ],
+            aiRecommendation: {
+              reason: '推荐优先关注：1) AI诊断技术（高增长+适度竞争）2) mRNA疫苗技术（市场大+细分机会）3) 绿色化学（政策驱动+差异化）',
+              reasonEn: 'Recommended priorities: 1) AI Diagnostics (high growth + moderate competition) 2) mRNA Vaccines (large market + niche opportunities) 3) Green Chemistry (policy-driven + differentiation)',
+              confidence: 82
+            },
+            options: [
+              {
+                id: 'approve-ai',
+                label: '采纳AI推荐的Top 3',
+                labelEn: 'Accept AI Top 3',
+                primary: true
+              },
+              {
+                id: 'custom-select',
+                label: '自定义选择Top 3',
+                labelEn: 'Custom select Top 3'
+              },
+              {
+                id: 'view-all',
+                label: '查看全部11个机会',
+                labelEn: 'View all 11 opportunities'
+              }
+            ]
+          }
+        },
+        {
           id: 'w5',
           capabilityId: 'monitor-03',
           capabilityName: '洞察报告能力',
@@ -665,6 +1356,95 @@ export const CapabilityMatrixLayer = ({
           duration: 4500,
           details: ['价格弹性建模', '销量影响预测', '毛利影响分析', '推荐价格区间'],
           detailsEn: ['Price elasticity modeling', 'Volume impact prediction', 'Margin impact analysis', 'Recommended price range']
+        },
+        {
+          id: 'checkpoint-c4-1',
+          type: 'checkpoint',
+          capabilityId: 'decision-08',
+          capabilityName: '选择定价策略',
+          capabilityNameEn: 'Select Pricing Strategy',
+          action: '选择大客户定价策略',
+          actionEn: 'Select key account pricing strategy',
+          duration: 0,
+          details: ['对比定价方案', '评估成交概率', '平衡价格与利润', '选择最优策略'],
+          detailsEn: ['Compare pricing plans', 'Assess win probability', 'Balance price & margin', 'Select optimal strategy'],
+          checkpoint: {
+            checkpointType: 'decide',
+            title: '大客户定价策略选择',
+            titleEn: 'Key Account Pricing Strategy Selection',
+            description: 'AI模拟了3种定价策略，请选择最优方案',
+            descriptionEn: 'AI simulated 3 pricing strategies, please select the optimal one',
+            capabilityName: '定价模拟能力',
+            capabilityNameEn: 'Pricing Simulation',
+            summary: {
+              'Customer': 'PharmaCorp',
+              'Deal Size': '¥3,580万',
+              'Current Margin': '28%',
+              'Win Probability': '72%'
+            },
+            plans: [
+              {
+                id: 'competitive',
+                name: '竞争策略：低价抢单',
+                nameEn: 'Competitive: Low price to win',
+                description: '降价8%，提升成交概率',
+                impact: {
+                  'Price': '-8%',
+                  'Margin': '22%',
+                  'Win Prob': '89%',
+                  'Revenue Impact': '-¥286万'
+                }
+              },
+              {
+                id: 'balanced',
+                name: '平衡策略：AI推荐',
+                nameEn: 'Balanced: AI recommended',
+                description: '降价4%，平衡价格与利润',
+                recommended: true,
+                impact: {
+                  'Price': '-4%',
+                  'Margin': '25%',
+                  'Win Prob': '82%',
+                  'Revenue Impact': '-¥143万'
+                }
+              },
+              {
+                id: 'premium',
+                name: '溢价策略：保持高价',
+                nameEn: 'Premium: Maintain high price',
+                description: '保持当前价格，强调价值',
+                impact: {
+                  'Price': '0%',
+                  'Margin': '28%',
+                  'Win Prob': '68%',
+                  'Revenue Impact': '¥0'
+                }
+              }
+            ],
+            aiRecommendation: {
+              reason: '推荐平衡策略。适度降价可将成交概率提升至82%，同时保持25%的合理毛利。竞争对手价格¥3,450万，我们的综合价值优势可支持略高定价。',
+              reasonEn: 'Balanced strategy recommended. Moderate discount increases win probability to 82% while maintaining 25% margin. Competitor price is ¥34.5M, our value proposition supports slightly higher pricing.',
+              confidence: 84
+            },
+            options: [
+              {
+                id: 'select-balanced',
+                label: '选择平衡策略',
+                labelEn: 'Select balanced strategy',
+                primary: true
+              },
+              {
+                id: 'select-competitive',
+                label: '选择竞争策略',
+                labelEn: 'Select competitive strategy'
+              },
+              {
+                id: 'select-premium',
+                label: '选择溢价策略',
+                labelEn: 'Select premium strategy'
+              }
+            ]
+          }
         },
         {
           id: 'w4',
@@ -1020,7 +1800,7 @@ export const CapabilityMatrixLayer = ({
       setExecutionLogs(prev => [completeMsg, ...prev]);
 
       setTimeout(() => {
-        onScenarioComplete();
+        onScenarioComplete(checkpointDecisions);
       }, 2000);
       return;
     }
@@ -1028,6 +1808,18 @@ export const CapabilityMatrixLayer = ({
     const step = scenario.workflow[stepIndex];
     setCurrentStepIndex(stepIndex);
     setCurrentExecutingCapability(step.capabilityId);
+
+    // Check if this is a checkpoint (human decision point)
+    if ((step as any).type === 'checkpoint') {
+      const checkpointMsg = isEnglish
+        ? `[${new Date().toLocaleTimeString()}] ⏸️ ${step.capabilityNameEn}: Awaiting human decision`
+        : `[${new Date().toLocaleTimeString()}] ⏸️ ${step.capabilityName}: 等待人工决策`;
+      setExecutionLogs(prev => [checkpointMsg, ...prev]);
+
+      setCurrentCheckpoint((step as any).checkpoint);
+      setShowCheckpoint(true);
+      return; // Pause execution, wait for user decision
+    }
 
     const startMsg = isEnglish
       ? `[${new Date().toLocaleTimeString()}] ▶️ ${step.capabilityNameEn} executing: ${step.actionEn}`
@@ -1079,6 +1871,85 @@ export const CapabilityMatrixLayer = ({
         executeWorkflowStep(scenario, stepIndex + 1);
       }, 500);
     }, step.duration);
+  };
+
+  const handleCheckpointDecision = (decision: any) => {
+    if (!selectedScenario) return;
+
+    const step = selectedScenario.workflow[currentStepIndex];
+    const option = decision.option;
+
+    // Record decision
+    const decisionRecord = {
+      ...decision,
+      operator: 'Zhang Wei', // Would come from user context in real app
+      operatorCn: '张伟',
+      timestamp: new Date().toISOString()
+    };
+
+    setCheckpointDecisions(prev => ({
+      ...prev,
+      [step.id]: decisionRecord
+    }));
+
+    // Determine if this is a terminating/pausing decision
+    const isRiskOption = option.risk === true;
+    const isRejectOption = option.id.includes('reject');
+    const isCancelOption = option.id.includes('cancel');
+    const isManualOption = option.id.includes('manual');
+    const shouldTerminate = isRiskOption || isRejectOption || isCancelOption || isManualOption;
+
+    // Generate appropriate log message
+    let logMessage: string;
+    if (shouldTerminate) {
+      if (isRejectOption) {
+        logMessage = isEnglish
+          ? `[${new Date().toLocaleTimeString()}] ❌ Workflow terminated: ${option.labelEn || option.label}`
+          : `[${new Date().toLocaleTimeString()}] ❌ 流程已终止: ${option.label}`;
+      } else if (isCancelOption || isManualOption) {
+        logMessage = isEnglish
+          ? `[${new Date().toLocaleTimeString()}] ⏸️ Workflow paused: ${option.labelEn || option.label}`
+          : `[${new Date().toLocaleTimeString()}] ⏸️ 流程已暂停: ${option.label}`;
+      } else {
+        logMessage = isEnglish
+          ? `[${new Date().toLocaleTimeString()}] ⚠️ Workflow halted: ${option.labelEn || option.label}`
+          : `[${new Date().toLocaleTimeString()}] ⚠️ 流程已中止: ${option.label}`;
+      }
+    } else {
+      logMessage = isEnglish
+        ? `[${new Date().toLocaleTimeString()}] ✅ Decision made: ${option.labelEn || option.label}`
+        : `[${new Date().toLocaleTimeString()}] ✅ 决策完成: ${option.label}`;
+    }
+
+    setExecutionLogs(prev => [logMessage, ...prev]);
+
+    // Close dialog
+    setShowCheckpoint(false);
+    setCurrentCheckpoint(null);
+
+    if (shouldTerminate) {
+      // Terminate workflow
+      setTimeout(() => {
+        setExecutionState('completed');
+        setCurrentExecutingCapability(null);
+        setScenarioProgress(100);
+
+        const terminationMsg = isEnglish
+          ? `[${new Date().toLocaleTimeString()}] 🏁 Workflow ended by user decision`
+          : `[${new Date().toLocaleTimeString()}] 🏁 工作流因人工决策而结束`;
+        setExecutionLogs(prev => [terminationMsg, ...prev]);
+
+        // Trigger completion callback
+        setTimeout(() => {
+          onScenarioComplete(checkpointDecisions);
+        }, 1000);
+      }, 500);
+    } else {
+      // Continue to next step
+      setTimeout(() => {
+        executeWorkflowStep(selectedScenario, currentStepIndex + 1);
+      }, 500);
+    }
   };
 
   // Layout calculation - similar to agent matrix but for capabilities
@@ -1586,6 +2457,7 @@ export const CapabilityMatrixLayer = ({
               const isCurrent = currentStepIndex === index && executionState === 'running';
               const isPast = index < currentStepIndex || completedCapabilities.includes(step.capabilityId);
               const isFuture = index > currentStepIndex && executionState !== 'completed';
+              const isCheckpoint = (step as any).type === 'checkpoint';
 
               return (
                 <div
@@ -1598,6 +2470,7 @@ export const CapabilityMatrixLayer = ({
                       ? 'bg-green-500/10 border-green-500/30'
                       : 'bg-card/30 border-border/30 opacity-50'
                     }
+                    ${isCheckpoint ? 'border-l-4 border-l-primary/60' : ''}
                   `}
                 >
                   <div className="flex items-start gap-3">
@@ -1609,6 +2482,7 @@ export const CapabilityMatrixLayer = ({
                         ? 'bg-green-500'
                         : 'bg-muted'
                       }
+                      ${isCheckpoint && !isCurrent && !isPast ? 'ring-2 ring-primary/50' : ''}
                     `}>
                       {isPast && !isCurrent ? (
                         <Check className="w-4 h-4 text-white" />
@@ -1620,11 +2494,18 @@ export const CapabilityMatrixLayer = ({
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-foreground mb-1">
-                        {isEnglish ? step.capabilityNameEn : step.capabilityName}
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="text-sm font-semibold text-foreground">
+                          {isEnglish ? step.capabilityNameEn : step.capabilityName}
+                        </div>
+                        {isCheckpoint && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                            {isEnglish ? 'Decision' : '决策点'}
+                          </span>
+                        )}
                       </div>
                       <div className="text-sm text-muted-foreground mb-2">
-                        ▶ {isEnglish ? step.actionEn : step.action}
+                        ▶ {isEnglish ? (step as any).actionEn : (step as any).action}
                       </div>
 
                       {isCurrent && stepDynamicMessages[step.id] && (
@@ -1675,6 +2556,13 @@ export const CapabilityMatrixLayer = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Checkpoint Dialog for Human Decision Points */}
+      <CheckpointDialog
+        open={showCheckpoint}
+        checkpoint={currentCheckpoint}
+        onDecision={handleCheckpointDecision}
+      />
 
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
