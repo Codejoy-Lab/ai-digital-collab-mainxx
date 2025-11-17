@@ -31,37 +31,37 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
       'scenario-01': {
         title: '合同智能审查报告',
         titleEn: 'Intelligent Contract Review Report',
-        summary: '智能合规系统完成了跨部门协同审查，通过多源数据集成发现了3项高风险矛盾，包括违约金条款、知识产权归属和付款账期异常，综合风险评分62/100（中高风险）。',
-        summaryEn: 'Intelligent compliance system completed cross-department review, identified 3 high-risk contradictions through multi-source data integration.',
+        summary: '智能合规系统完成了跨部门协同自动化审查，通过多源数据集成发现了3项高风险条款和2项中风险条款。系统自动调用企业信用库、法律法规库、历史案例库进行深度验证，综合风险评分62/100（中等风险），已生成详细的风险分析报告和改进建议。',
+        summaryEn: 'Intelligent compliance system completed automated cross-department review, identified 5 risk clauses through multi-source data integration.',
         metrics: {
           pages: 15,
-          charts: 5,
-          insights: 8,
-          recommendations: 6
+          charts: 6,
+          insights: 10,
+          recommendations: 8
         },
-        tags: ['风险矩阵', '矛盾检测', '合规验证', '多源集成', 'API调用', '决策建议'],
+        tags: ['自动审查', '风险识别', '合规验证', '多源集成', '改进建议', '法律分析'],
         roi: {
           time: { value: '-92%', desc: '审查时间 5天 → 10分钟' },
-          efficiency: { value: '+88%', desc: '风险识别准确率' },
-          risk: { value: '+95%', desc: '矛盾检测覆盖率' }
+          efficiency: { value: '+90%', desc: '风险识别准确率' },
+          risk: { value: '+95%', desc: '条款检测覆盖率' }
         }
       },
       'scenario-02': {
         title: '合作伙伴背调报告',
         titleEn: 'Partner Background Check Report',
-        summary: '背景调查系统完成了全方位尽职调查，综合企业资质、财务健康度和历史记录，生成了信用评级报告，该企业综合评分78/100（B+级），建议谨慎合作并加强监控。',
-        summaryEn: 'Background check system completed comprehensive due diligence, credit rating 78/100 (B+ grade), recommend cautious cooperation.',
+        summary: '背景调查系统自动完成了全方位尽职调查，包括企业资质验证、财务健康度分析、诉讼记录详查、供应链稳定性评估。该企业综合评分78/100（B+级），虽存在2起历史诉讼但已和解，财务状况趋于稳定，建议可以合作并设置季度监控机制。',
+        summaryEn: 'Automated comprehensive due diligence completed. Credit rating 78/100 (B+ grade), historical issues resolved, recommend cooperation with quarterly monitoring.',
         metrics: {
-          pages: 12,
-          charts: 8,
-          insights: 10,
-          recommendations: 5
+          pages: 18,
+          charts: 10,
+          insights: 12,
+          recommendations: 8
         },
-        tags: ['资质验证', '财务分析', '诉讼查询', '信用评级', '风险等级', '监控方案'],
+        tags: ['自动背调', '资质验证', '财务分析', '诉讼详查', '信用评级', '监控方案'],
         roi: {
-          time: { value: '-94%', desc: '调查时间 7天 → 12分钟' },
-          efficiency: { value: '+82%', desc: '信息覆盖完整度' },
-          risk: { value: '+90%', desc: '风险识别准确率' }
+          time: { value: '-95%', desc: '调查时间 10天 → 15分钟' },
+          efficiency: { value: '+88%', desc: '信息覆盖完整度' },
+          risk: { value: '+92%', desc: '风险识别准确率' }
         }
       },
       'scenario-03': {
@@ -82,24 +82,83 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
           risk: { value: '-85%', desc: '停机损失降低' }
         }
       },
-      'scenario-04': {
-        title: '客户投诉分析报告',
-        titleEn: 'Customer Complaint Analysis Report',
-        summary: '智能客服系统完成了投诉智能分析，识别为产品质量问题（紧急度：高），客户流失风险73%，已生成个性化解决方案并匹配最佳补偿建议。',
-        summaryEn: 'Intelligent customer service system completed complaint analysis, churn risk 73%, personalized solution generated.',
-        metrics: {
-          pages: 10,
-          charts: 6,
-          insights: 8,
-          recommendations: 5
-        },
-        tags: ['投诉分类', '情感分析', '根因挖掘', '流失风险', '解决方案', '补偿建议'],
-        roi: {
-          time: { value: '-89%', desc: '处理时间 2天 → 8分钟' },
-          efficiency: { value: '+78%', desc: '客户满意度提升' },
-          risk: { value: '-68%', desc: '客户流失率降低' }
+      'scenario-04': (() => {
+        // 根据决策历史返回不同的结果
+        const decision = scenario?.decisionHistory?.[0];
+        const decisionPath = decision?.optionId || 'default';
+
+        if (decisionPath === 'option-approve') {
+          // 审核通过：执行AI方案
+          return {
+            title: '客户投诉AI方案执行报告',
+            titleEn: 'AI Solution Execution Report',
+            summary: '您审核通过了AI生成的处理方案。系统按照建议执行：全额退款¥12,800 + VIP补偿礼包（3000积分+¥500券+3月VIP）+ 专属客户经理张经理跟进 + 3天后回访。客户满意度从35%提升至92%，流失风险从85%降至15%，成功挽回高价值客户。AI方案执行效果优异！',
+            summaryEn: 'You approved AI solution. Full refund + VIP package executed. Satisfaction increased to 92%, churn risk reduced to 15%.',
+            metrics: {
+              pages: 14,
+              charts: 8,
+              insights: 10,
+              recommendations: 6
+            },
+            tags: ['AI方案', '方案审核', 'VIP挽回', '补偿礼包', '满意度提升', '客户挽回'],
+            roi: {
+              time: { value: '-95%', desc: '处理时间 2天 → 2小时' },
+              efficiency: { value: '+160%', desc: '客户满意度提升' },
+              risk: { value: '-82%', desc: '客户流失率降低' }
+            },
+            decisionOutcome: {
+              label: '✅ 方案通过',
+              color: 'green',
+              result: 'AI方案执行完美！退款¥12,800 + 补偿礼包成功挽回客户。满意度92%，客户承诺继续合作，避免12万元LTV流失。'
+            }
+          };
+        } else if (decisionPath === 'option-modify') {
+          // 人工修改：优化后执行
+          return {
+            title: '客户投诉优化方案执行报告',
+            titleEn: 'Optimized Solution Execution Report',
+            summary: '您对AI方案进行了人工优化。修改内容：调整补偿金额、优化客服话术、增加定制化服务。优化后方案执行：全额退款¥12,800 + 定制补偿礼包 + 优化话术沟通 + 专属经理跟进。客户满意度提升至88%，流失风险降至20%，成功挽回客户并体现人工关怀。',
+            summaryEn: 'You optimized AI solution. Customized compensation and service scripts. Satisfaction 88%, churn risk 20%.',
+            metrics: {
+              pages: 15,
+              charts: 9,
+              insights: 11,
+              recommendations: 7
+            },
+            tags: ['人工优化', '定制方案', '话术优化', '灵活调整', '满意度恢复', '人工智慧'],
+            roi: {
+              time: { value: '-90%', desc: '处理时间 2天 → 3小时' },
+              efficiency: { value: '+150%', desc: '客户满意度提升' },
+              risk: { value: '-76%', desc: '客户流失率降低' }
+            },
+            decisionOutcome: {
+              label: '✏️ 方案优化',
+              color: 'yellow',
+              result: '人工优化方案执行成功！定制化服务+优化话术体现人文关怀。满意度88%，客户认可人工调整的细节，关系更稳固。'
+            }
+          };
+        } else {
+          // 默认：AI分析完成
+          return {
+            title: '客户投诉AI分析与方案',
+            titleEn: 'AI Analysis and Solution',
+            summary: 'AI系统完成投诉分析：产品质量问题（严重度高）、VIP客户（价值¥12万）、流失风险85%。AI建议方案：全额退款+VIP补偿礼包+专属经理+回访计划。系统已生成详细话术和执行步骤，等待人工审核确认。',
+            summaryEn: 'AI analysis completed. VIP customer, high churn risk 85%. AI recommended full refund + compensation plan, awaiting review.',
+            metrics: {
+              pages: 12,
+              charts: 7,
+              insights: 9,
+              recommendations: 5
+            },
+            tags: ['AI分析', '投诉分类', '方案生成', '话术准备', '等待审核', '智能建议'],
+            roi: {
+              time: { value: '-92%', desc: '分析时间 1天 → 6分钟' },
+              efficiency: { value: '+85%', desc: '方案准确度' },
+              risk: { value: '-70%', desc: '预期流失降低' }
+            }
+          };
         }
-      },
+      })(),
       'scenario-05': {
         title: '营销内容合规审核报告',
         titleEn: 'Marketing Content Compliance Report',
@@ -301,7 +360,7 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
                   <div className="text-base font-semibold text-primary mb-2">综合风险评分与建议</div>
                   <div className="text-3xl font-bold text-yellow-400 mb-2">62/100</div>
                   <div className="text-sm text-muted-foreground space-y-1">
-                    <div>• 风险等级: <span className="text-yellow-400 font-semibold">中高风险</span></div>
+                    <div>• 风险等级: <span className="text-yellow-400 font-semibold">中等风险</span></div>
                     <div>• 建议: 重点协商修改3项高风险条款</div>
                     <div>• 优先级: 违约金条款 &gt; 知识产权 &gt; 付款条件</div>
                   </div>
@@ -400,15 +459,15 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <div className="text-base font-semibold text-primary mb-2">🎯 合作建议与风险控制</div>
                   <div className="text-sm text-muted-foreground space-y-2">
-                    <div className="bg-yellow-500/10 rounded p-2">
-                      <span className="text-yellow-400 font-semibold">建议:</span> 可以合作，但需谨慎并加强风险控制
+                    <div className="bg-blue-500/10 rounded p-2">
+                      <span className="text-blue-400 font-semibold">AI建议:</span> 可以合作，企业综合评分B+级，历史问题已解决，建议加强风险控制和定期监控
                     </div>
                     <div className="space-y-1 ml-2">
                       <div>• 合同条款: 加强违约责任和付款保障条款</div>
                       <div>• 付款方式: 建议分期付款，首付不超过30%</div>
                       <div>• 履约保证: 要求提供履约保证金或银行保函</div>
-                      <div>• 持续监控: 定期复查财务状况和舆情变化</div>
-                      <div>• 预警机制: 建立异常情况预警通知</div>
+                      <div>• 持续监控: 设置季度财务审查和舆情监控机制</div>
+                      <div>• 预警机制: 建立异常情况自动预警通知</div>
                     </div>
                   </div>
                 </div>
@@ -674,34 +733,36 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
                     </div>
                   </div>
 
-                  {/* 解决方案 */}
-                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                    <div className="text-green-400 font-semibold mb-2 flex items-center">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                      💡 个性化解决方案
-                    </div>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div className="bg-green-500/10 rounded p-2">
-                        <div className="text-green-400 font-semibold mb-1">即时方案:</div>
-                        <div className="ml-2 space-y-0.5">
-                          <div>• 立即换货 (同城2小时达)</div>
-                          <div>• 赠送¥200代金券</div>
-                          <div>• 专人上门取旧送新</div>
+                  {/* 解决方案 - 仅在无决策时显示，决策后显示在decisionOutcome中 */}
+                  {!result.decisionOutcome && (
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                      <div className="text-green-400 font-semibold mb-2 flex items-center">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                        💡 个性化解决方案
+                      </div>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <div className="bg-green-500/10 rounded p-2">
+                          <div className="text-green-400 font-semibold mb-1">即时方案:</div>
+                          <div className="ml-2 space-y-0.5">
+                            <div>• 立即换货 (同城2小时达)</div>
+                            <div>• 赠送¥200代金券</div>
+                            <div>• 专人上门取旧送新</div>
+                          </div>
+                        </div>
+                        <div className="bg-blue-500/10 rounded p-2">
+                          <div className="text-blue-400 font-semibold mb-1">补偿升级:</div>
+                          <div className="ml-2 space-y-0.5">
+                            <div>• 升级VIP会员 (1年)</div>
+                            <div>• 专属客服对接</div>
+                            <div>• 未来订单包邮特权</div>
+                          </div>
+                        </div>
+                        <div className="text-sm text-green-400 pt-1">
+                          预计挽回成功率: 82%
                         </div>
                       </div>
-                      <div className="bg-blue-500/10 rounded p-2">
-                        <div className="text-blue-400 font-semibold mb-1">补偿升级:</div>
-                        <div className="ml-2 space-y-0.5">
-                          <div>• 升级VIP会员 (1年)</div>
-                          <div>• 专属客服对接</div>
-                          <div>• 未来订单包邮特权</div>
-                        </div>
-                      </div>
-                      <div className="text-sm text-green-400 pt-1">
-                        预计挽回成功率: 82%
-                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* 后续行动 */}
@@ -1015,7 +1076,7 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
               </div>
               <div className="w-full bg-muted/30 rounded-full h-2 mb-2">
                 <div className="bg-gradient-to-r from-accent to-accent/60 h-2 rounded-full"
-                     style={{ width: result.roi.time.value.replace('-', '').replace('+', '') }} />
+                     style={{ width: Math.min(100, parseInt(result.roi.time.value.replace('-', '').replace('+', '').replace('%', '')) || 0) + '%' }} />
               </div>
               <p className="text-sm text-muted-foreground">
                 {result.roi.time.desc}
@@ -1042,7 +1103,7 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
               </div>
               <div className="w-full bg-muted/30 rounded-full h-2 mb-2">
                 <div className="bg-gradient-to-r from-primary to-primary/60 h-2 rounded-full"
-                     style={{ width: result.roi.efficiency.value.replace('-', '').replace('+', '') }} />
+                     style={{ width: Math.min(100, parseInt(result.roi.efficiency.value.replace('-', '').replace('+', '').replace('%', '')) || 0) + '%' }} />
               </div>
               <p className="text-sm text-muted-foreground">
                 {result.roi.efficiency.desc}
@@ -1069,7 +1130,7 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
               </div>
               <div className="w-full bg-muted/30 rounded-full h-2 mb-2">
                 <div className="bg-gradient-to-r from-tech-green to-tech-green/60 h-2 rounded-full"
-                     style={{ width: result.roi.risk.value.replace('-', '').replace('+', '') }} />
+                     style={{ width: Math.min(100, parseInt(result.roi.risk.value.replace('-', '').replace('+', '').replace('%', '')) || 0) + '%' }} />
               </div>
               <p className="text-sm text-muted-foreground">
                 {result.roi.risk.desc}

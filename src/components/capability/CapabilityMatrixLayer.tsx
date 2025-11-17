@@ -6,6 +6,7 @@ import { SelectedScenario, WorkflowStep } from '@/pages/CapabilityHubPage';
 import { buildApiUrl, WS_BASE_URL } from '@/config/api.config';
 import ReactMarkdown from 'react-markdown';
 import { CheckpointDialog } from '@/components/merck/CheckpointDialog';
+import { DecisionDialog, DecisionPoint, DecisionOption } from './DecisionDialog';
 
 interface CapabilityMatrixLayerProps {
   onScenarioSelect: (scenario: SelectedScenario) => void;
@@ -71,6 +72,16 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
+  // 决策点相关状态
+  const [showDecisionDialog, setShowDecisionDialog] = useState(false);
+  const [currentDecision, setCurrentDecision] = useState<DecisionPoint | null>(null);
+  const [decisionHistory, setDecisionHistory] = useState<Array<{stepId: string; optionId: string; optionLabel: string}>>([]);
+  const [pendingSteps, setPendingSteps] = useState<WorkflowStep[]>([]);
+
+  // 编辑对话框状态
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editedScript, setEditedScript] = useState('');
+
   // 50 Smart Modules organized by departments
   const agents: SmartModule[] = [
     // Tech & Data Department (12 modules)
@@ -135,6 +146,55 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     { id: 'finance-05', name: '资金流分析', nameEn: 'Cash Flow Analysis', department: 'finance', role: 'CashFlow' },
     { id: 'finance-06', name: '审计检查系统', nameEn: 'Audit System', department: 'finance', role: 'Audit' },
   ];
+  // 场景04的决策点配置 - AI建议方案，人工审核确认
+  const scenario04Decision: DecisionPoint = {
+    id: 'decision-complaint-review',
+    title: '👤 AI建议方案审核',
+    description: 'AI已完成投诉分析并生成建议处理方案，请您审核方案是否合理',
+    keyInfo: [
+      { label: '投诉类型', value: '产品质量问题', color: 'yellow' },
+      { label: '客户价值', value: 'VIP客户（¥12万）', color: 'green' },
+      { label: '流失风险', value: '85/100（极高）', color: 'red' },
+      { label: '建议策略', value: '全额退款+补偿', color: 'yellow' }
+    ],
+    riskDetails: [
+      {
+        title: 'AI分析：投诉内容',
+        content: '客户反映购买的智能设备存在功能缺陷，已影响正常使用3周。此前联系客服2次未满意解决，情绪升级。订单金额：¥12,800。',
+        severity: 'high'
+      },
+      {
+        title: 'AI分析：客户画像',
+        content: '3年老客户，累计消费12万元，属于TOP 5%高价值VIP客户。历史满意度高，本次为首次投诉。流失风险模型预测：85%流失概率。',
+        severity: 'high'
+      }
+    ],
+    aiRecommendations: [
+      {
+        title: '处理方案',
+        content: '【立即执行】全额退款¥12,800（2小时内到账）+ VIP专属补偿礼包（3000积分+¥500全场券+3个月VIP会员延期）→【48小时内】安排专属客户经理张经理1对1跟进，建立直通服务通道 → 【3天后】电话回访确认问题解决情况，收集改进建议 → 【7天后】发送定制化产品推荐，重建购买信心'
+      },
+      {
+        title: '客服话术（3轮沟通策略）',
+        content: '【第1轮-问题确认】"李先生您好，我是客服主管王芳。非常抱歉这次给您带来困扰。我已详细查看您的反馈：购买的智能手表在使用3周后出现功能缺陷，且之前2次联系客服未得到满意解决。这确实是我们的服务失误，我代表公司向您真诚道歉。"\n\n【第2轮-解决方案】"针对您的情况，我们立即为您安排：①全额退款¥12,800，预计2小时内到账；②作为VIP客户的补偿，我们额外提供3000积分、¥500全场优惠券和3个月VIP会员延期；③我们已为您配备专属客户经理张经理（手机：138xxxx），他会在48小时内与您联系，后续任何问题都可以直接找他，绕过普通客服流程。"\n\n【第3轮-情感维系】"李先生，您是我们的3年老客户，累计消费12万元，我们非常珍视这份信任。这次产品问题和服务疏漏让您失望，我们深感自责。我会亲自跟进您的退款和补偿，3天后再次致电确认您的满意度。期待能重新赢得您的信任，也欢迎随时向我反馈改进建议。我的直线电话：400-xxx-8888转分机9001。"'
+      }
+    ],
+    question: '请审核AI生成的处理方案和话术',
+    options: [
+      {
+        id: 'option-approve',
+        label: '✅ 方案合理，直接执行',
+        description: 'AI方案和话术符合预期，立即执行处理流程',
+        color: 'green'
+      },
+      {
+        id: 'option-modify',
+        label: '✏️ 需要调整，修改后执行',
+        description: '方案基本可行，但需要人工修改优化后再执行',
+        color: 'yellow'
+      }
+    ]
+  };
 
   // Scenario cards with workflow definitions
   const taskCards: ScenarioCard[] = [
@@ -586,6 +646,39 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
           setTaskProgress(((stepIndex + 1) / task.workflow.length) * 100);
 
           stepIndex++;
+
+          // 🔥 检查是否需要显示决策点
+          let needDecision = false;
+          let decisionConfig: DecisionPoint | null = null;
+
+          if (task.id === 'scenario-04' && stepIndex === 2) {
+            // 场景04：客户投诉在第2步后需要人工审核AI方案
+            needDecision = true;
+            decisionConfig = scenario04Decision;
+          }
+
+          if (needDecision && decisionConfig) {
+            setExecutionLogs(prev => [
+              `[${new Date().toLocaleTimeString()}] ⏸️ 等待人工决策...`,
+              ...prev.slice(0, 20)
+            ]);
+
+            // 清空当前执行状态，避免闪烁效果停留
+            setCurrentExecutingAgent(null);
+            // 将步骤索引设置为超出范围，这样已完成的显示绿色，未完成的显示灰色，没有闪烁效果
+            setCurrentStepIndex(task.workflow.length);
+
+            // 保存后续步骤
+            setPendingSteps(task.workflow.slice(stepIndex));
+
+            // 显示决策对话框
+            setTimeout(() => {
+              setCurrentDecision(decisionConfig);
+              setShowDecisionDialog(true);
+            }, 1000);
+            return; // 暂停执行，等待决策
+          }
+
           if (stepIndex < task.workflow.length) {
             executeStep();
           } else {
@@ -606,6 +699,225 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     };
 
     executeStep();
+  };
+
+  // 处理用户决策
+  const handleUserDecision = (option: DecisionOption) => {
+    if (!selectedTask || !currentDecision) return;
+
+    // 记录决策
+    const decision = {
+      stepId: 'w2',
+      optionId: option.id,
+      optionLabel: option.label
+    };
+    setDecisionHistory(prev => {
+      const updated = [...prev, decision];
+
+      // 立即更新 selectedTask 以包含决策历史
+      if (selectedTask) {
+        const updatedScenario: SelectedScenario = {
+          ...selectedTask,
+          decisionHistory: updated
+        };
+        onScenarioSelect(updatedScenario);
+      }
+
+      return updated;
+    });
+
+    // 添加决策日志
+    setExecutionLogs(prev => [
+      `[${new Date().toLocaleTimeString()}] 👤 人工决策: ${option.label}`,
+      ...prev.slice(0, 20)
+    ]);
+
+    // 关闭决策对话框
+    setShowDecisionDialog(false);
+    setCurrentDecision(null);
+
+    // 如果选择修改，显示编辑对话框
+    if (option.id === 'option-modify') {
+      // 预填充AI建议的话术
+      const defaultScript = '【第1轮-问题确认】"李先生您好，我是客服主管王芳。非常抱歉这次给您带来困扰。我已详细查看您的反馈：购买的智能手表在使用3周后出现功能缺陷，且之前2次联系客服未得到满意解决。这确实是我们的服务失误，我代表公司向您真诚道歉。"\n\n【第2轮-解决方案】"针对您的情况，我们立即为您安排：①全额退款¥12,800，预计2小时内到账；②作为VIP客户的补偿，我们额外提供3000积分、¥500全场优惠券和3个月VIP会员延期；③我们已为您配备专属客户经理张经理（手机：138xxxx），他会在48小时内与您联系，后续任何问题都可以直接找他，绕过普通客服流程。"\n\n【第3轮-情感维系】"李先生，您是我们的3年老客户，累计消费12万元，我们非常珍视这份信任。这次产品问题和服务疏漏让您失望，我们深感自责。我会亲自跟进您的退款和补偿，3天后再次致电确认您的满意度。期待能重新赢得您的信任，也欢迎随时向我反馈改进建议。我的直线电话：400-xxx-8888转分机9001。"';
+      setEditedScript(defaultScript);
+      setShowEditDialog(true);
+      return; // 不执行后续流程，等待编辑完成
+    }
+
+    // 根据选择执行不同的后续流程
+    setTimeout(() => {
+      // 场景04：继续执行w3、w4步骤
+      if (selectedTask.id === 'scenario-04') {
+        continueWorkflow(pendingSteps, option.id);
+      } else {
+        // 其他场景：判断是否继续执行完整流程
+        const shouldContinue = option.id === 'option-continue';
+
+        if (shouldContinue) {
+          // 继续执行原有的w3, w4步骤
+          continueWorkflow(pendingSteps);
+        } else {
+          // 跳过后续步骤，直接完成
+          setTaskProgress(90);
+          if (selectedTask) {
+            setCurrentStepIndex(selectedTask.workflow.length);
+          }
+
+          setTimeout(() => {
+            completeScenario(option.id);
+          }, 2500);
+        }
+      }
+    }, 500);
+  };
+
+  // 处理编辑确认
+  const handleEditConfirm = () => {
+    if (!selectedTask) return;
+
+    // 关闭编辑对话框
+    setShowEditDialog(false);
+
+    // 显示确认消息
+    setExecutionLogs(prev => [
+      `[${new Date().toLocaleTimeString()}] ✏️ 话术修改完成，继续执行流程`,
+      ...prev.slice(0, 20)
+    ]);
+
+    // 继续执行w3、w4步骤
+    setTimeout(() => {
+      continueWorkflow(pendingSteps, 'option-modify');
+    }, 1000);
+  };
+
+  // 继续执行后续workflow
+  const continueWorkflow = (steps: WorkflowStep[], decisionOptionId?: string) => {
+    if (!selectedTask) return;
+
+    // 计算前面已完成的步骤数
+    const completedStepsCount = selectedTask.workflow.length - steps.length;
+
+    let stepIndex = 0;
+    const executeStep = () => {
+      if (stepIndex < steps.length) {
+        const step = steps[stepIndex];
+        setCurrentExecutingAgent(step.agentId);
+
+        // 更新进度：考虑前面已完成的步骤
+        const currentStepNumber = completedStepsCount + stepIndex;
+        const absoluteStepIndex = completedStepsCount + stepIndex;
+
+        // 🔥 更新当前步骤索引（这是关键！）
+        setCurrentStepIndex(absoluteStepIndex);
+        setTaskProgress(((currentStepNumber + 1) / selectedTask.workflow.length) * 100);
+
+        setExecutionLogs(prev => [
+          `[${new Date().toLocaleTimeString()}] 📋 ${step.agentName} 正在执行: ${step.action}`,
+          ...prev.slice(0, 20)
+        ]);
+
+        setTimeout(() => {
+          setCompletedAgents(prev => [...prev, step.agentId]);
+          setCurrentExecutingAgent(null);
+
+          setExecutionLogs(prev => [
+            `[${new Date().toLocaleTimeString()}] ✅ ${step.agentName} 已完成 ${step.action}`,
+            ...prev.slice(0, 30)
+          ]);
+
+          stepIndex++;
+          if (stepIndex < steps.length) {
+            executeStep();
+          } else {
+            // 所有workflow步骤执行完成
+            if (decisionOptionId && selectedTask.id === 'scenario-04') {
+              // 场景04：显示最终执行日志
+              const finalLogs = decisionOptionId === 'option-approve'
+                ? [
+                    '💳 发起全额退款¥12,800（支付宝）',
+                    '💸 退款已提交，预计2小时到账',
+                    '🎁 发放VIP补偿礼包（3000积分+¥500券+3月VIP）',
+                    '👤 分配专属客户经理：张经理',
+                    '📞 安排3天后客户回访',
+                    '💰 方案执行完成，客户已挽回'
+                  ]
+                : [
+                    '💳 按修改方案执行退款和补偿',
+                    '📧 发送定制化邮件和短信通知',
+                    '👤 分配专属客户经理跟进',
+                    '📞 安排回访计划',
+                    '💰 优化方案执行完成'
+                  ];
+
+              finalLogs.forEach((log, index) => {
+                setTimeout(() => {
+                  setExecutionLogs(prev => [
+                    `[${new Date().toLocaleTimeString()}] ${log}`,
+                    ...prev.slice(0, 20)
+                  ]);
+                }, (index + 1) * 800);
+              });
+
+              setTimeout(() => {
+                completeScenario(decisionOptionId);
+              }, finalLogs.length * 800 + 1000);
+            } else {
+              completeScenario(decisionOptionId || 'continue');
+            }
+          }
+        }, step.duration);
+      }
+    };
+
+    executeStep();
+  };
+
+  // 完成场景（根据决策路径）
+  const completeScenario = (path: string) => {
+    setExecutionState('completed');
+    setTaskProgress(100);
+
+    // 根据场景和决策路径生成不同的完成消息
+    const getCompletionMessage = (scenarioId: string, optionId: string): string => {
+      if (scenarioId === 'scenario-01') {
+        const messages: Record<string, string> = {
+          'option-continue': '🎉 完整审查流程已完成！',
+          'option-negotiate': '📋 修改建议已生成，等待协商',
+          'option-abort': '🛑 合作终止流程已完成',
+          'continue': '🎉 完整审查流程已完成！' // 兼容旧版本
+        };
+        return messages[optionId] || '🎉 场景执行完成!';
+      } else if (scenarioId === 'scenario-02') {
+        const messages: Record<string, string> = {
+          'option-continue': '🎉 深度调查报告已生成！',
+          'option-guarantee': '⚠️ 担保方案已发送，等待反馈',
+          'option-reject': '❌ 拒绝合作通知已发送'
+        };
+        return messages[optionId] || '🎉 场景执行完成!';
+      } else if (scenarioId === 'scenario-04') {
+        const messages: Record<string, string> = {
+          'option-approve': '💰 AI方案执行完成，客户已挽回',
+          'option-modify': '✏️ 优化方案执行完成，客户已挽回'
+        };
+        return messages[optionId] || '🎉 场景执行完成!';
+      }
+      return '🎉 场景执行完成!';
+    };
+
+    const completionMessage = selectedTask
+      ? getCompletionMessage(selectedTask.id, path)
+      : '🎉 场景执行完成!';
+
+    setExecutionLogs(prev => [
+      `[${new Date().toLocaleTimeString()}] ${completionMessage}`,
+      ...prev.slice(0, 20)
+    ]);
+
+    // 延迟跳转，确保所有状态更新完成
+    setTimeout(() => {
+      onScenarioComplete();
+    }, 2000);
   };
 
   const handleAgentClick = (agentId: string) => {
@@ -1028,6 +1340,9 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-bold text-tech-blue bg-tech-blue/10 px-2 py-0.5 rounded border border-tech-blue/30">
+                              {task.id.replace('scenario-', '场景')}
+                            </span>
                             <h4 className="font-bold text-base group-hover:text-primary transition-colors">{task.title}</h4>
                           </div>
                           <p className="text-xs text-accent mb-2 font-medium">{task.titleEn}</p>
@@ -1124,8 +1439,8 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
             </div>
 
             <div className="flex justify-between text-xs font-mono mt-3 pt-2 border-t border-tech-blue/20">
-              <span className="text-tech-green">▶ COMPLETED: {completedAgents.length}/{selectedTask.requiredModules.length}</span>
-              <span className="text-accent">▶ PROGRESS: {currentStepIndex + 1}/{selectedTask.workflow.length}</span>
+              <span className="text-tech-green">▶ COMPLETED: {completedAgents.length}/{selectedTask.workflow.length}</span>
+              <span className="text-accent">▶ PROGRESS: {Math.min(currentStepIndex + 1, selectedTask.workflow.length)}/{selectedTask.workflow.length}</span>
             </div>
           </div>
         )}
@@ -1245,6 +1560,54 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Decision Point Dialog */}
+      <DecisionDialog
+        open={showDecisionDialog}
+        decision={currentDecision}
+        onDecide={handleUserDecision}
+      />
+
+      {/* Edit Script Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-background/95 backdrop-blur-xl border-2 border-primary/50">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gradient flex items-center space-x-2">
+              <span>✏️</span>
+              <span>编辑客服话术</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            <div className="text-sm text-muted-foreground">
+              请根据实际情况修改AI生成的客服话术，优化后点击"确认修改"继续执行
+            </div>
+
+            <textarea
+              value={editedScript}
+              onChange={(e) => setEditedScript(e.target.value)}
+              className="w-full h-96 p-4 rounded-lg border border-border bg-background/50 text-foreground font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="请输入客服话术..."
+            />
+
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowEditDialog(false)}
+                className="px-6"
+              >
+                取消
+              </Button>
+              <Button
+                onClick={handleEditConfirm}
+                className="px-6 bg-primary hover:bg-primary/90"
+              >
+                确认修改并继续执行
+              </Button>
             </div>
           </div>
         </DialogContent>

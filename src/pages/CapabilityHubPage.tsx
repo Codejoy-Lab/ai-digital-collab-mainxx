@@ -18,6 +18,11 @@ export interface SelectedScenario {
   icon: string;
   requiredModules: string[];
   workflow: WorkflowStep[];
+  decisionHistory?: Array<{
+    stepId: string;
+    optionId: string;
+    optionLabel: string;
+  }>;
 }
 
 export interface WorkflowStep {
