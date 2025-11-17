@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ExecutiveAssistantDemo from "./pages/ExecutiveAssistantDemo";
 import AIDemoPage from "./pages/AIDemoPage";
 import MerckAIHubPage from "./pages/MerckAIHubPage";
+import CapabilityHubPage from "./pages/CapabilityHubPage";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/demo" element={<AIDemoPage />} />
             <Route path="/executive-assistant" element={<ExecutiveAssistantDemo />} />
             <Route path="/merck-ai-hub" element={<MerckAIHubPage />} />
+            <Route path="/capability-hub" element={<CapabilityHubPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -40,7 +40,7 @@ const Index = () => {
         </div>
 
         {/* Feature Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
           {/* Multi-Agent Collaboration */}
           <div
             className="group cursor-pointer transition-all duration-500 hover:scale-105"
@@ -222,6 +222,68 @@ const Index = () => {
                 size="lg"
               >
                 <span>探索能力</span>
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
+          </div>
+
+          {/* AI Intelligent Collaboration */}
+          <div
+            className="group cursor-pointer transition-all duration-500 hover:scale-105"
+            onClick={() => navigate('/capability-hub')}
+          >
+            <div className="relative overflow-hidden rounded-2xl border-2 border-border/50 bg-gradient-to-br from-background to-tech-green/5 p-8 h-full backdrop-blur-sm hover:border-tech-green/50 hover:shadow-[0_0_30px_rgba(var(--tech-green)/0.3)] transition-all duration-500">
+              {/* Icon */}
+              <div className="mb-6 flex items-center justify-center">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-tech-green to-accent flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                    <Network className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center animate-pulse">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-3xl font-bold text-foreground mb-3 text-center">
+                AI智能协同平台
+              </h3>
+              <p className="text-xl text-tech-green/80 mb-6 text-center font-medium">
+                AI Intelligent Collaboration
+              </p>
+
+              {/* Description */}
+              <div className="space-y-3 mb-8">
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-tech-green mt-2 flex-shrink-0" />
+                  <p className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">50+ 智能模块：</span>
+                    跨领域协同，智能编排执行
+                  </p>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0" />
+                  <p className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">6大通用场景：</span>
+                    覆盖合规、风控、运营、客服等领域
+                  </p>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
+                  <p className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">智能决策辅助：</span>
+                    关键节点人机协作，AI辅助分析
+                  </p>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <Button
+                className="w-full text-lg py-6 bg-tech-green hover:bg-tech-green/90 group-hover:scale-105 transition-transform duration-300"
+                size="lg"
+              >
+                <span>体验协同</span>
                 <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
             </div>
