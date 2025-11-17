@@ -2,18 +2,20 @@ import { Button } from '@/components/ui/button';
 import { Play, Sparkles, Users, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import heroImage from '@/assets/ai-workforce-hero.jpg';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface EntryLayerProps {
   onStart: () => void;
 }
 
 export const CapabilityEntryLayer = ({ onStart }: EntryLayerProps) => {
+  const { t } = useLanguage();
   const [currentSubtitle, setCurrentSubtitle] = useState(0);
 
   const subtitles = [
-    { zh: "50+ 智能模块", en: "50+ Smart Modules" },
-    { zh: "跨领域协同", en: "Cross-domain Collaboration" },
-    { zh: "智能决策辅助", en: "Intelligent Decision Support" }
+    'capability.entry.subtitle1',
+    'capability.entry.subtitle2',
+    'capability.entry.subtitle3'
   ];
 
   useEffect(() => {
@@ -54,11 +56,8 @@ export const CapabilityEntryLayer = ({ onStart }: EntryLayerProps) => {
           </div>
           
           <h1 className="text-6xl font-bold text-gradient leading-tight">
-            AI智能协同平台
+            {t('capability.entry.title')}
           </h1>
-          <h2 className="text-4xl font-semibold text-muted-foreground">
-            AI Intelligent Collaboration
-          </h2>
         </div>
 
         {/* Dynamic Subtitle */}
@@ -67,21 +66,14 @@ export const CapabilityEntryLayer = ({ onStart }: EntryLayerProps) => {
             key={currentSubtitle}
             className="text-2xl font-medium text-primary slide-up"
           >
-            <div className="flex items-center space-x-4">
-              <span className="text-foreground">{subtitles[currentSubtitle].zh}</span>
-              <span className="text-muted-foreground">|</span>
-              <span className="text-muted-foreground">{subtitles[currentSubtitle].en}</span>
-            </div>
+            <span className="text-foreground">{t(subtitles[currentSubtitle])}</span>
           </div>
         </div>
 
         {/* Description */}
         <div className="max-w-4xl mx-auto space-y-4">
           <p className="text-xl text-muted-foreground">
-            体验 AI 智能协同平台的跨模块协作，从需求到成果的完整工作流程
-          </p>
-          <p className="text-lg text-muted-foreground/80">
-            Experience intelligent cross-module collaboration of AI platform, from requirements to results
+            {t('capability.entry.description1')}
           </p>
         </div>
 
@@ -93,7 +85,7 @@ export const CapabilityEntryLayer = ({ onStart }: EntryLayerProps) => {
             className="px-12 py-6 text-xl font-semibold glow-effect hover:scale-105 transition-all duration-300"
           >
             <Play className="w-6 h-6 mr-3" />
-            开始体验 / Start Demo
+            {t('capability.entry.startDemo')}
           </Button>
         </div>
 
@@ -104,19 +96,19 @@ export const CapabilityEntryLayer = ({ onStart }: EntryLayerProps) => {
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <Users className="w-6 h-6" />
               </div>
-              <span className="text-sm">智能分工</span>
+              <span className="text-sm">{t('capability.entry.feature1')}</span>
             </div>
             <div className="flex flex-col items-center space-y-2 hover:text-accent transition-colors">
               <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
                 <Zap className="w-6 h-6" />
               </div>
-              <span className="text-sm">高效执行</span>
+              <span className="text-sm">{t('capability.entry.feature2')}</span>
             </div>
             <div className="flex flex-col items-center space-y-2 hover:text-tech-blue transition-colors">
               <div className="w-12 h-12 rounded-full bg-tech-blue/10 flex items-center justify-center">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <span className="text-sm">智能输出</span>
+              <span className="text-sm">{t('capability.entry.feature3')}</span>
             </div>
           </div>
         </div>

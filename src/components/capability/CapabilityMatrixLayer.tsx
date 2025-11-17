@@ -7,6 +7,7 @@ import { buildApiUrl, WS_BASE_URL } from '@/config/api.config';
 import ReactMarkdown from 'react-markdown';
 import { CheckpointDialog } from '@/components/merck/CheckpointDialog';
 import { DecisionDialog, DecisionPoint, DecisionOption } from './DecisionDialog';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CapabilityMatrixLayerProps {
   onScenarioSelect: (scenario: SelectedScenario) => void;
@@ -27,6 +28,7 @@ interface ScenarioCard {
   title: string;
   titleEn: string;
   description: string;
+  descriptionEn: string;
   icon: string;
   requiredModules: string[];
   workflow: WorkflowStep[];
@@ -46,6 +48,7 @@ interface ModuleOutput {
 }
 
 export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComplete }: CapabilityMatrixLayerProps) => {
+  const { language, t } = useLanguage();
   const [hoveredAgent, setHoveredAgent] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<ScenarioCard | null>(null);
   const [highlightedAgents, setHighlightedAgents] = useState<string[]>([]);
@@ -147,9 +150,9 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     { id: 'finance-06', name: '审计检查系统', nameEn: 'Audit System', department: 'finance', role: 'Audit' },
   ];
   // 场景04的决策点配置 - AI建议方案，人工审核确认
-  const scenario04Decision: DecisionPoint = {
+  const scenario04DecisionCn: DecisionPoint = {
     id: 'decision-complaint-review',
-    title: '👤 AI建议方案审核',
+    title: 'AI建议方案审核',
     description: 'AI已完成投诉分析并生成建议处理方案，请您审核方案是否合理',
     keyInfo: [
       { label: '投诉类型', value: '产品质量问题', color: 'yellow' },
@@ -196,6 +199,55 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     ]
   };
 
+  const scenario04DecisionEn: DecisionPoint = {
+    id: 'decision-complaint-review',
+    title: 'AI Recommendation Review',
+    description: 'AI has completed complaint analysis and generated recommended solutions. Please review if the plan is reasonable.',
+    keyInfo: [
+      { label: 'Complaint Type', value: 'Product Quality Issue', color: 'yellow' },
+      { label: 'Customer Value', value: 'VIP Customer (¥120K)', color: 'green' },
+      { label: 'Churn Risk', value: '85/100 (Very High)', color: 'red' },
+      { label: 'Suggested Strategy', value: 'Full Refund + Compensation', color: 'yellow' }
+    ],
+    riskDetails: [
+      {
+        title: 'AI Analysis: Complaint Content',
+        content: 'Customer reports functional defects in purchased smart device, affecting normal use for 3 weeks. Previous 2 customer service contacts unsatisfactory, emotions escalating. Order amount: ¥12,800.',
+        severity: 'high'
+      },
+      {
+        title: 'AI Analysis: Customer Profile',
+        content: '3-year customer, ¥120K total spending, TOP 5% high-value VIP customer. Historically high satisfaction, first complaint. Churn risk model prediction: 85% probability.',
+        severity: 'high'
+      }
+    ],
+    aiRecommendations: [
+      {
+        title: 'Solution Plan',
+        content: '【Immediate】Full refund ¥12,800 (within 2 hours) + VIP exclusive compensation package (3000 points + ¥500 voucher + 3-month VIP extension) → 【Within 48 hours】Assign dedicated account manager Zhang for 1-on-1 follow-up, establish direct service channel → 【After 3 days】Phone callback to confirm resolution, collect improvement suggestions → 【After 7 days】Send customized product recommendations, rebuild purchase confidence'
+      },
+      {
+        title: 'Customer Service Script (3-Round Strategy)',
+        content: '【Round 1 - Problem Confirmation】"Hello Mr. Li, I\'m Wang Fang, Customer Service Manager. We sincerely apologize for the inconvenience. I\'ve reviewed your feedback: the smart watch purchased developed functional defects after 3 weeks of use, and 2 previous customer service contacts didn\'t resolve the issue satisfactorily. This is our service failure, and I apologize on behalf of the company."\n\n【Round 2 - Solution】"For your situation, we immediately arrange: ①Full refund ¥12,800, expected within 2 hours; ②As VIP compensation, we provide 3000 points, ¥500 voucher, and 3-month VIP extension; ③We\'ve assigned dedicated account manager Zhang (Mobile: 138xxxx), who will contact you within 48 hours. Any future issues can go directly to him, bypassing regular customer service."\n\n【Round 3 - Relationship Maintenance】"Mr. Li, you\'re our 3-year customer with ¥120K spending. We deeply value this trust. This product issue and service oversight disappointed you, and we deeply regret it. I\'ll personally follow up on your refund and compensation, and call you in 3 days to confirm satisfaction. We hope to regain your trust, and welcome any feedback. My direct line: 400-xxx-8888 ext. 9001."'
+      }
+    ],
+    question: 'Please review AI-generated solution and script',
+    options: [
+      {
+        id: 'option-approve',
+        label: '✅ Reasonable plan, execute directly',
+        description: 'AI plan and script meet expectations, execute immediately',
+        color: 'green'
+      },
+      {
+        id: 'option-modify',
+        label: '✏️ Needs adjustment, modify before execution',
+        description: 'Plan is generally viable but requires manual optimization',
+        color: 'yellow'
+      }
+    ]
+  };
+
   // Scenario cards with workflow definitions
   const taskCards: ScenarioCard[] = [
     {
@@ -203,13 +255,14 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
       title: '跨部门智能合规审查',
       titleEn: 'Cross-Department Compliance Review',
       description: '文本解析 → 智能审查（多源数据集成） → 人工决策 → 合规检查 → 风险评估',
+      descriptionEn: 'Text Parsing → Intelligent Review (Multi-source Integration) → Manual Decision → Compliance Check → Risk Assessment',
       icon: 'FileText',
       requiredModules: ['legal-01', 'legal-02', 'legal-04', 'legal-09', 'finance-01'],
       workflow: [
-        { id: 'w1', agentId: 'legal-01', agentName: '法律文本分析', action: '合同文本解析与结构化', actionEn: 'Contract Text Parsing', duration: 3500, details: ['提取合同关键条款', '识别法律术语', '构建条款关系图谱'] },
-        { id: 'w2', agentId: 'legal-02', agentName: '合同智能审查', action: '多源数据集成分析', actionEn: 'Multi-source Integrated Analysis', duration: 8000, details: ['调用会议系统API', '通过邮件MCP获取往来', '访问财务信息库', '综合分析风险'] },
-        { id: 'w3', agentId: 'legal-04', agentName: '合规性检查', action: '监管要求符合性验证', actionEn: 'Regulatory Compliance Verification', duration: 4000, details: ['数据保护法规检查', '行业标准验证', '反垄断条款审查'] },
-        { id: 'w4', agentId: 'legal-09', agentName: '风险评估引擎', action: '综合风险量化评估', actionEn: 'Comprehensive Risk Quantification', duration: 3500, details: ['生成风险矩阵', '量化风险等级', '输出审查报告'] }
+        { id: 'w1', agentId: 'legal-01', agentName: '法律文本分析', action: '合同文本解析与结构化', actionEn: 'Contract Text Parsing', duration: 3500, details: ['提取合同关键条款', '识别法律术语', '构建条款关系图谱'], detailsEn: ['Extract key clauses', 'Identify legal terms', 'Build clause relationship graph'] },
+        { id: 'w2', agentId: 'legal-02', agentName: '合同智能审查', action: '多源数据集成分析', actionEn: 'Multi-source Integrated Analysis', duration: 8000, details: ['调用会议系统API', '通过邮件MCP获取往来', '访问财务信息库', '综合分析风险'], detailsEn: ['Call meeting system API', 'Retrieve correspondence via email MCP', 'Access financial database', 'Comprehensive risk analysis'] },
+        { id: 'w3', agentId: 'legal-04', agentName: '合规性检查', action: '监管要求符合性验证', actionEn: 'Regulatory Compliance Verification', duration: 4000, details: ['数据保护法规检查', '行业标准验证', '反垄断条款审查'], detailsEn: ['Data protection regulation check', 'Industry standard verification', 'Anti-monopoly clause review'] },
+        { id: 'w4', agentId: 'legal-09', agentName: '风险评估引擎', action: '综合风险量化评估', actionEn: 'Comprehensive Risk Quantification', duration: 3500, details: ['生成风险矩阵', '量化风险等级', '输出审查报告'], detailsEn: ['Generate risk matrix', 'Quantify risk levels', 'Output review report'] }
       ]
     },
     {
@@ -217,13 +270,14 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
       title: '第三方合作伙伴背景调查',
       titleEn: 'Third-party Partner Background Check',
       description: '资质验证 → 信用评估 → 历史记录分析 → 综合评级',
+      descriptionEn: 'Qualification Verification → Credit Assessment → Historical Records Analysis → Comprehensive Rating',
       icon: 'Users',
       requiredModules: ['legal-01', 'finance-01', 'legal-09', 'product-05'],
       workflow: [
-        { id: 'w1', agentId: 'legal-01', agentName: '法律文本分析', action: '企业资质验证', actionEn: 'Enterprise Qualification Verification', duration: 3500, details: ['工商信息查询', '经营范围分析', '证照有效性验证'] },
-        { id: 'w2', agentId: 'finance-01', agentName: '财务分析引擎', action: '财务健康度评估', actionEn: 'Financial Health Assessment', duration: 4000, details: ['财报数据分析', '负债率计算', '现金流评估', '偿债能力分析'] },
-        { id: 'w3', agentId: 'legal-09', agentName: '风险评估引擎', action: '历史记录与诉讼查询', actionEn: 'Historical Records & Litigation Check', duration: 5000, details: ['裁判文书检索', '失信记录查询', '行政处罚历史', '舆情负面分析'] },
-        { id: 'w4', agentId: 'product-05', agentName: '业务智能分析', action: '综合评级与建议', actionEn: 'Comprehensive Rating & Recommendation', duration: 3000, details: ['多维度评分', '生成风险等级', '输出合作建议', '制定监控方案'] }
+        { id: 'w1', agentId: 'legal-01', agentName: '法律文本分析', action: '企业资质验证', actionEn: 'Enterprise Qualification Verification', duration: 3500, details: ['工商信息查询', '经营范围分析', '证照有效性验证'], detailsEn: ['Business registration inquiry', 'Business scope analysis', 'License validity verification'] },
+        { id: 'w2', agentId: 'finance-01', agentName: '财务分析引擎', action: '财务健康度评估', actionEn: 'Financial Health Assessment', duration: 4000, details: ['财报数据分析', '负债率计算', '现金流评估', '偿债能力分析'], detailsEn: ['Financial statement analysis', 'Debt ratio calculation', 'Cash flow assessment', 'Solvency analysis'] },
+        { id: 'w3', agentId: 'legal-09', agentName: '风险评估引擎', action: '历史记录与诉讼查询', actionEn: 'Historical Records & Litigation Check', duration: 5000, details: ['裁判文书检索', '失信记录查询', '行政处罚历史', '舆情负面分析'], detailsEn: ['Judicial document search', 'Dishonesty record inquiry', 'Administrative penalty history', 'Negative sentiment analysis'] },
+        { id: 'w4', agentId: 'product-05', agentName: '业务智能分析', action: '综合评级与建议', actionEn: 'Comprehensive Rating & Recommendation', duration: 3000, details: ['多维度评分', '生成风险等级', '输出合作建议', '制定监控方案'], detailsEn: ['Multi-dimensional scoring', 'Generate risk level', 'Output cooperation recommendations', 'Establish monitoring plan'] }
       ]
     },
     {
@@ -231,13 +285,14 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
       title: '制造设备智能监控预警',
       titleEn: 'Manufacturing Equipment Intelligent Monitoring',
       description: '传感器数据采集 → AI异常检测 → 故障预测 → 预警通知',
+      descriptionEn: 'Sensor Data Collection → AI Anomaly Detection → Failure Prediction → Alert Notification',
       icon: 'Activity',
       requiredModules: ['tech-01', 'tech-02', 'tech-10', 'tech-04'],
       workflow: [
-        { id: 'w1', agentId: 'tech-01', agentName: '数据采集系统', action: '设备传感器数据采集', actionEn: 'Sensor Data Collection', duration: 3000, details: ['温度数据采集', '振动频率监测', '电流功率读取', '运行状态记录'] },
-        { id: 'w2', agentId: 'tech-02', agentName: '异常检测引擎', action: 'AI异常模式识别', actionEn: 'AI Anomaly Detection', duration: 5000, details: ['机器学习模型分析', '识别异常波动', '对比历史基线', '定位异常参数'] },
-        { id: 'w3', agentId: 'tech-10', agentName: '预测模型系统', action: '故障预测与剩余寿命评估', actionEn: 'Failure Prediction & RUL Assessment', duration: 4500, details: ['预测故障时间', '计算剩余寿命', '评估维修紧急度', '生成维护建议'] },
-        { id: 'w4', agentId: 'tech-04', agentName: '设备监控系统', action: '智能预警通知', actionEn: 'Intelligent Alert Notification', duration: 2000, details: ['发送预警通知', '推送维修工单', '更新设备档案', '记录预警事件'] }
+        { id: 'w1', agentId: 'tech-01', agentName: '数据采集系统', action: '设备传感器数据采集', actionEn: 'Sensor Data Collection', duration: 3000, details: ['温度数据采集', '振动频率监测', '电流功率读取', '运行状态记录'], detailsEn: ['Temperature data collection', 'Vibration frequency monitoring', 'Current power reading', 'Operation status recording'] },
+        { id: 'w2', agentId: 'tech-02', agentName: '异常检测引擎', action: 'AI异常模式识别', actionEn: 'AI Anomaly Detection', duration: 5000, details: ['机器学习模型分析', '识别异常波动', '对比历史基线', '定位异常参数'], detailsEn: ['Machine learning model analysis', 'Identify abnormal fluctuations', 'Compare historical baseline', 'Locate abnormal parameters'] },
+        { id: 'w3', agentId: 'tech-10', agentName: '预测模型系统', action: '故障预测与剩余寿命评估', actionEn: 'Failure Prediction & RUL Assessment', duration: 4500, details: ['预测故障时间', '计算剩余寿命', '评估维修紧急度', '生成维护建议'], detailsEn: ['Predict failure time', 'Calculate remaining useful life', 'Assess maintenance urgency', 'Generate maintenance recommendations'] },
+        { id: 'w4', agentId: 'tech-04', agentName: '设备监控系统', action: '智能预警通知', actionEn: 'Intelligent Alert Notification', duration: 2000, details: ['发送预警通知', '推送维修工单', '更新设备档案', '记录预警事件'], detailsEn: ['Send alert notification', 'Push maintenance work order', 'Update equipment records', 'Log alert events'] }
       ]
     },
     {
@@ -245,13 +300,14 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
       title: '客户投诉智能分析处理',
       titleEn: 'Customer Complaint Intelligent Analysis',
       description: '投诉分类 → 情感分析 → 根因挖掘 → 解决方案生成',
+      descriptionEn: 'Complaint Classification → Sentiment Analysis → Root Cause Analysis → Solution Generation',
       icon: 'Megaphone',
       requiredModules: ['marketing-04', 'marketing-10', 'product-02', 'marketing-07'],
       workflow: [
-        { id: 'w1', agentId: 'marketing-04', agentName: '客户洞察分析', action: '投诉智能分类', actionEn: 'Complaint Intelligent Classification', duration: 3000, details: ['NLP文本分析', '投诉类型识别', '紧急程度评估', '责任部门判定'] },
-        { id: 'w2', agentId: 'marketing-10', agentName: '舆情监测系统', action: '客户情感与满意度分析', actionEn: 'Customer Sentiment Analysis', duration: 3500, details: ['情感倾向分析', '不满程度量化', '流失风险评估', '历史互动回顾'] },
-        { id: 'w3', agentId: 'product-02', agentName: '用户洞察系统', action: '问题根因挖掘', actionEn: 'Root Cause Analysis', duration: 4000, details: ['关联历史案例', '识别系统性问题', '追溯产品缺陷', '分析流程漏洞'] },
-        { id: 'w4', agentId: 'marketing-07', agentName: '客户关系管理', action: '个性化解决方案生成', actionEn: 'Personalized Solution Generation', duration: 3500, details: ['匹配最佳方案', '生成补偿建议', '预测接受度', '输出处理话术'] }
+        { id: 'w1', agentId: 'marketing-04', agentName: '客户洞察分析', action: '投诉智能分类', actionEn: 'Complaint Intelligent Classification', duration: 3000, details: ['NLP文本分析', '投诉类型识别', '紧急程度评估', '责任部门判定'], detailsEn: ['NLP text analysis', 'Complaint type identification', 'Urgency level assessment', 'Responsible department determination'] },
+        { id: 'w2', agentId: 'marketing-10', agentName: '舆情监测系统', action: '客户情感与满意度分析', actionEn: 'Customer Sentiment Analysis', duration: 3500, details: ['情感倾向分析', '不满程度量化', '流失风险评估', '历史互动回顾'], detailsEn: ['Sentiment tendency analysis', 'Dissatisfaction quantification', 'Churn risk assessment', 'Historical interaction review'] },
+        { id: 'w3', agentId: 'product-02', agentName: '用户洞察系统', action: '问题根因挖掘', actionEn: 'Root Cause Analysis', duration: 4000, details: ['关联历史案例', '识别系统性问题', '追溯产品缺陷', '分析流程漏洞'], detailsEn: ['Correlate historical cases', 'Identify systemic issues', 'Trace product defects', 'Analyze process gaps'] },
+        { id: 'w4', agentId: 'marketing-07', agentName: '客户关系管理', action: '个性化解决方案生成', actionEn: 'Personalized Solution Generation', duration: 3500, details: ['匹配最佳方案', '生成补偿建议', '预测接受度', '输出处理话术'], detailsEn: ['Match best solution', 'Generate compensation recommendations', 'Predict acceptance rate', 'Output handling scripts'] }
       ]
     },
     {
@@ -259,13 +315,14 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
       title: '营销内容智能合规审核',
       titleEn: 'Marketing Content Compliance Review',
       description: '内容提取 → 合规检测 → 风险识别 → 修改建议',
+      descriptionEn: 'Content Extraction → Compliance Detection → Risk Identification → Modification Recommendations',
       icon: 'Briefcase',
       requiredModules: ['marketing-03', 'legal-04', 'legal-05', 'marketing-02'],
       workflow: [
-        { id: 'w1', agentId: 'marketing-03', agentName: '内容生成引擎', action: '营销内容提取与解析', actionEn: 'Marketing Content Extraction', duration: 2500, details: ['文本内容提取', '图片元素识别', '视频字幕提取', '广告语解析'] },
-        { id: 'w2', agentId: 'legal-04', agentName: '合规性检查', action: '广告法合规检测', actionEn: 'Advertising Law Compliance Check', duration: 4500, details: ['违禁词检测', '夸大宣传识别', '对比广告审查', '虚假承诺分析'] },
-        { id: 'w3', agentId: 'legal-05', agentName: '隐私保护检测', action: '数据隐私风险识别', actionEn: 'Data Privacy Risk Identification', duration: 3500, details: ['个人信息检测', 'GDPR合规检查', '敏感数据识别', '授权验证分析'] },
-        { id: 'w4', agentId: 'marketing-02', agentName: '品牌监测系统', action: '品牌形象评估与修改建议', actionEn: 'Brand Image Assessment', duration: 3000, details: ['品牌调性分析', '风险等级评估', '生成修改建议', '输出合规报告'] }
+        { id: 'w1', agentId: 'marketing-03', agentName: '内容生成引擎', action: '营销内容提取与解析', actionEn: 'Marketing Content Extraction', duration: 2500, details: ['文本内容提取', '图片元素识别', '视频字幕提取', '广告语解析'], detailsEn: ['Text content extraction', 'Image element recognition', 'Video subtitle extraction', 'Advertising slogan parsing'] },
+        { id: 'w2', agentId: 'legal-04', agentName: '合规性检查', action: '广告法合规检测', actionEn: 'Advertising Law Compliance Check', duration: 4500, details: ['违禁词检测', '夸大宣传识别', '对比广告审查', '虚假承诺分析'], detailsEn: ['Prohibited words detection', 'Exaggerated claims identification', 'Comparative advertising review', 'False promise analysis'] },
+        { id: 'w3', agentId: 'legal-05', agentName: '隐私保护检测', action: '数据隐私风险识别', actionEn: 'Data Privacy Risk Identification', duration: 3500, details: ['个人信息检测', 'GDPR合规检查', '敏感数据识别', '授权验证分析'], detailsEn: ['Personal information detection', 'GDPR compliance check', 'Sensitive data identification', 'Authorization verification analysis'] },
+        { id: 'w4', agentId: 'marketing-02', agentName: '品牌监测系统', action: '品牌形象评估与修改建议', actionEn: 'Brand Image Assessment', duration: 3000, details: ['品牌调性分析', '风险等级评估', '生成修改建议', '输出合规报告'], detailsEn: ['Brand tone analysis', 'Risk level assessment', 'Generate modification suggestions', 'Output compliance report'] }
       ]
     },
     {
@@ -273,13 +330,14 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
       title: '财务异常智能检测',
       titleEn: 'Financial Anomaly Intelligent Detection',
       description: '数据采集 → 异常检测 → 风险评估 → 审计报告',
+      descriptionEn: 'Data Collection → Anomaly Detection → Risk Assessment → Audit Report',
       icon: 'Target',
       requiredModules: ['finance-01', 'finance-02', 'tech-02', 'finance-06'],
       workflow: [
-        { id: 'w1', agentId: 'finance-01', agentName: '财务分析引擎', action: '多源财务数据整合', actionEn: 'Multi-source Financial Data Integration', duration: 3500, details: ['ERP数据提取', '银行流水导入', '发票数据采集', '报销单据汇总'] },
-        { id: 'w2', agentId: 'tech-02', agentName: '异常检测引擎', action: '异常交易模式识别', actionEn: 'Anomaly Transaction Detection', duration: 5000, details: ['机器学习分析', '识别异常金额', '检测频繁小额', '发现重复支付', '标记可疑账户'] },
-        { id: 'w3', agentId: 'finance-02', agentName: '会计核算系统', action: '会计准则符合性检查', actionEn: 'Accounting Standards Compliance', duration: 4000, details: ['科目使用规范检查', '凭证完整性验证', '税务合规分析', '跨期调整识别'] },
-        { id: 'w4', agentId: 'finance-06', agentName: '审计检查系统', action: '审计风险评估与报告', actionEn: 'Audit Risk Assessment', duration: 4500, details: ['风险等级评估', '异常交易汇总', '生成审计线索', '输出检测报告'] }
+        { id: 'w1', agentId: 'finance-01', agentName: '财务分析引擎', action: '多源财务数据整合', actionEn: 'Multi-source Financial Data Integration', duration: 3500, details: ['ERP数据提取', '银行流水导入', '发票数据采集', '报销单据汇总'], detailsEn: ['ERP data extraction', 'Bank statement import', 'Invoice data collection', 'Expense document aggregation'] },
+        { id: 'w2', agentId: 'tech-02', agentName: '异常检测引擎', action: '异常交易模式识别', actionEn: 'Anomaly Transaction Detection', duration: 5000, details: ['机器学习分析', '识别异常金额', '检测频繁小额', '发现重复支付', '标记可疑账户'], detailsEn: ['Machine learning analysis', 'Identify abnormal amounts', 'Detect frequent small payments', 'Discover duplicate payments', 'Flag suspicious accounts'] },
+        { id: 'w3', agentId: 'finance-02', agentName: '会计核算系统', action: '会计准则符合性检查', actionEn: 'Accounting Standards Compliance', duration: 4000, details: ['科目使用规范检查', '凭证完整性验证', '税务合规分析', '跨期调整识别'], detailsEn: ['Account usage standard check', 'Voucher completeness verification', 'Tax compliance analysis', 'Cross-period adjustment identification'] },
+        { id: 'w4', agentId: 'finance-06', agentName: '审计检查系统', action: '审计风险评估与报告', actionEn: 'Audit Risk Assessment', duration: 4500, details: ['风险等级评估', '异常交易汇总', '生成审计线索', '输出检测报告'], detailsEn: ['Risk level assessment', 'Anomaly transaction summary', 'Generate audit trails', 'Output detection report'] }
       ]
     }
   ];
@@ -304,13 +362,19 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
 
   // Module group labels - positioned at top-left corner of each area
   const departmentLabels = [
-    { id: 'tech' as const, label: '🔧 数据与技术', subtitle: 'Data & Technology', x: 2, y: 1 },
-    { id: 'product' as const, label: '📊 业务分析', subtitle: 'Business Analytics', x: 72, y: 1 },
-    { id: 'marketing' as const, label: '📈 营销与客户', subtitle: 'Marketing & Customer', x: 2, y: 60 },
-    { id: 'legal' as const, label: '⚖️ 合规与法律', subtitle: 'Compliance & Legal', x: 72, y: 60 },
-    { id: 'finance' as const, label: '💰 财务管理', subtitle: 'Financial Management', x: 34, y: 1 },
-    { id: 'hr' as const, label: '👥 人才系统', subtitle: 'Talent System', x: 37, y: 60 },
+    { id: 'tech' as const, x: 2, y: 1 },
+    { id: 'product' as const, x: 72, y: 1 },
+    { id: 'marketing' as const, x: 2, y: 60 },
+    { id: 'legal' as const, x: 72, y: 60 },
+    { id: 'finance' as const, x: 34, y: 1 },
+    { id: 'hr' as const, x: 37, y: 60 },
   ];
+
+  // Helper function to get agent's English name
+  const getAgentName = (agentId: string, lang: 'zh' | 'en') => {
+    const agent = agents.find(a => a.id === agentId);
+    return lang === 'zh' ? agent?.name : agent?.nameEn;
+  };
 
   const handleTaskHover = (task: ScenarioCard | null) => {
     if (!executionStarted && task) {
@@ -334,7 +398,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     // Pass scenario to parent for data persistence
     onScenarioSelect(task as SelectedScenario);
 
-    setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 🎯 收到新场景: ${task.title}`, ...prev]);
+    setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ${t('capability.log.newScenario')}: ${language === 'zh' ? task.title : task.titleEn}`, ...prev]);
 
     // 开始调度流程
     startDispatchingProcess(task);
@@ -342,19 +406,19 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
 
   const startDispatchingProcess = (task: ScenarioCard) => {
     // 第一阶段：中央调度器分析任务
-    setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 🤖 中央调度器正在分析场景需求...`, ...prev]);
+    setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ${t('capability.log.analyzing')}`, ...prev]);
 
     setTimeout(() => {
-      setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 📋 场景分析完成，需要以下智能模块:`, ...prev]);
+      setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ${t('capability.log.analysisComplete')}`, ...prev]);
 
       // 获取需要的模块信息并显示
       const requiredModuleDetails = task.requiredModules.map(moduleId => {
         const module = agents.find(a => a.id === moduleId);
-        return module ? `${module.name} (${module.department})` : moduleId;
+        return module ? `${language === 'zh' ? module.name : module.nameEn} (${module.department})` : moduleId;
       });
 
       setTimeout(() => {
-        setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] 👥 调度以下智能模块协作完成场景:`, ...prev]);
+        setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ${t('capability.log.dispatching')}`, ...prev]);
 
         // 逐个显示被调度的模块
         let moduleIndex = 0;
@@ -363,7 +427,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
             const moduleDetail = requiredModuleDetails[moduleIndex];
             const moduleId = task.requiredModules[moduleIndex];
 
-            setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ▶ 调度: ${moduleDetail}`, ...prev]);
+            setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ▶ ${t('capability.log.dispatch')}: ${moduleDetail}`, ...prev]);
             setDispatchingAgents(prev => [...prev, moduleId]);
 
             moduleIndex++;
@@ -371,7 +435,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
           } else {
             // 调度完成，开始执行工作流
             setTimeout(() => {
-              setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ✅ 智能模块调度完成，开始执行工作流`, ...prev]);
+              setExecutionLogs(prev => [`[${new Date().toLocaleTimeString()}] ✅ ${t('capability.log.dispatchComplete')}`, ...prev]);
               setIsDispatcherActive(false);
               setHighlightedAgents(task.requiredModules);
               setExecutionState('running');
@@ -448,7 +512,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
       case 'agent-start':
         setCurrentExecutingAgent(data.agentId);
         setExecutionLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] 📋 ${data.agentName || data.agentId} 开始执行`,
+          `[${new Date().toLocaleTimeString()}] 📋 ${getAgentName(data.agentId, language) || data.agentId} ${t('capability.log.agentStarted')}`,
           ...prev.slice(0, 20)
         ]);
         break;
@@ -468,13 +532,15 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
 
         const output: AgentOutput = {
           agentId: data.agentId,
-          content: data.output || data.message || `## ${data.agentName || data.agentId} 执行完成\n\n任务已成功完成`,
+          content: data.output || data.message || (language === 'zh'
+            ? `## ${getAgentName(data.agentId, language) || data.agentId} 执行完成\n\n任务已成功完成`
+            : `## ${getAgentName(data.agentId, language) || data.agentId} Execution Completed\n\nTask completed successfully`),
           timestamp: new Date().toISOString()
         };
         setAgentOutputs(prev => [...prev, output]);
 
         setExecutionLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] ✅ ${data.agentName || data.agentId} 已完成`,
+          `[${new Date().toLocaleTimeString()}] ✅ ${getAgentName(data.agentId, language) || data.agentId} ${t('capability.log.agentCompleted')}`,
           ...prev.slice(0, 20)
         ]);
         break;
@@ -546,13 +612,13 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
         setCurrentExecutingAgent(step.agentId);
 
         setExecutionLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] 📋 ${step.agentName} 正在执行: ${step.action}`,
+          `[${new Date().toLocaleTimeString()}] 📋 ${getAgentName(step.agentId, language)} ${t('capability.log.executing')}: ${language === 'zh' ? step.action : step.actionEn}`,
           ...prev.slice(0, 20)
         ]);
 
         // Add detailed processing info for all scenarios
         setTimeout(() => {
-          const processingDetails: Record<string, string[]> = {
+          const processingDetailsCn: Record<string, string[]> = {
               // 场景01: 合同智能审查 - 核心步骤 legal-02
               'scenario-01-legal-02': [
                 '获取会议记录 → 3场会议',
@@ -608,8 +674,65 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
               ]
             };
 
+          const processingDetailsEn: Record<string, string[]> = {
+              // Scenario 01: Contract Review - Key step legal-02
+              'scenario-01-legal-02': [
+                'Retrieve meeting records → 3 meetings',
+                'Extract email correspondence → 12 emails',
+                'Detect clause conflicts → Penalty 50% vs 20%',
+                'Detect IP conflicts → Ownership unclear',
+                'Risk score → 62/100 (Medium-High Risk)'
+              ],
+
+              // Scenario 02: Partner Due Diligence - Key step legal-09
+              'scenario-02-legal-09': [
+                'Query judicial documents → 3 lawsuits',
+                'Check dishonesty records → None',
+                'Query administrative penalties → 2 violations',
+                'Sentiment scan → 5 negative news',
+                'Overall rating → Grade B (Medium Risk)'
+              ],
+
+              // Scenario 03: Equipment Monitoring - Key step tech-02
+              'scenario-03-tech-02': [
+                'Load LSTM model → Start analysis',
+                'Vibration data → Abnormal fluctuation +38%',
+                'Temperature curve → Increase +12°C',
+                'Noise spectrum → High-frequency anomaly',
+                'Locate component → Main bearing (92% confidence)'
+              ],
+
+              // Scenario 04: Customer Complaint Analysis - Key step product-02
+              'scenario-04-product-02': [
+                'Search historical tickets → 12 similar cases',
+                'Identify commonality → Logistics damage + delay',
+                'Trace supply chain → Locate logistics provider',
+                'Quality analysis → Packaging substandard',
+                'Root cause → Logistics + QC failure'
+              ],
+
+              // Scenario 05: Marketing Compliance - Key step legal-04
+              'scenario-05-legal-04': [
+                'Load prohibited word database → 2024 version',
+                'Detect absolute terms → "Best", "First"',
+                'Identify exaggerated claims → "100% effective"',
+                'Count violations → 5 advertising law issues',
+                'Risk assessment → Medium Risk'
+              ],
+
+              // Scenario 06: Financial Anomaly Detection - Key step tech-02
+              'scenario-06-tech-02': [
+                'Start anomaly detection → Isolation Forest',
+                'Scan transaction records → 18,523 items',
+                'Identify abnormal amounts → 2 over limit',
+                'Detect frequent small amounts → ¥9,999×5',
+                'Flag suspicious accounts → Total anomaly ¥2.85M'
+              ]
+            };
+
             const key = `${task.id}-${step.agentId}`;
-            const details = processingDetails[key] || step.details;
+            const processingDetails = language === 'zh' ? processingDetailsCn : processingDetailsEn;
+            const details = processingDetails[key] || (language === 'zh' ? step.details : (step.detailsEn || step.details));
             if (details) {
               details.forEach((detail, index) => {
                 setTimeout(() => {
@@ -631,14 +754,14 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
           // Simulate module output (in real implementation this would come from backend)
           const output: ModuleOutput = {
             moduleId: step.agentId,
-            content: `## ${step.action} 执行报告\n\n### 场景概述\n${step.agentName} 已完成 ${step.action}\n\n### 详细结果\n- ${step.details?.join('\n- ')}\n\n### 状态\n✅ 执行成功完成`,
+            content: `## ${language === 'zh' ? step.action : step.actionEn} ${language === 'zh' ? '执行报告' : 'Execution Report'}\n\n### ${language === 'zh' ? '场景概述' : 'Overview'}\n${getAgentName(step.agentId, language)} ${language === 'zh' ? '已完成' : 'completed'} ${language === 'zh' ? step.action : step.actionEn}\n\n### ${language === 'zh' ? '详细结果' : 'Detailed Results'}\n- ${(language === 'zh' ? step.details : (step.detailsEn || step.details))?.join('\n- ')}\n\n### ${language === 'zh' ? '状态' : 'Status'}\n✅ ${language === 'zh' ? '执行成功完成' : 'Successfully Completed'}`,
             timestamp: new Date().toISOString()
           };
           setAgentOutputs(prev => [...prev, output]);
 
           // Add completion logs
           setExecutionLogs(prev => [
-            `[${new Date().toLocaleTimeString()}] ✅ ${step.agentName} 已完成 ${step.action}`,
+            `[${new Date().toLocaleTimeString()}] ✅ ${getAgentName(step.agentId, language)} ${t('capability.log.agentCompleted')} ${language === 'zh' ? step.action : step.actionEn}`,
             ...prev.slice(0, 30)
           ]);
 
@@ -654,12 +777,12 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
           if (task.id === 'scenario-04' && stepIndex === 2) {
             // 场景04：客户投诉在第2步后需要人工审核AI方案
             needDecision = true;
-            decisionConfig = scenario04Decision;
+            decisionConfig = language === 'zh' ? scenario04DecisionCn : scenario04DecisionEn;
           }
 
           if (needDecision && decisionConfig) {
             setExecutionLogs(prev => [
-              `[${new Date().toLocaleTimeString()}] ⏸️ 等待人工决策...`,
+              `[${new Date().toLocaleTimeString()}] ⏸️ ${t('capability.log.waitingDecision')}`,
               ...prev.slice(0, 20)
             ]);
 
@@ -685,7 +808,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
             // Scenario completed
             setExecutionState('completed');
             setExecutionLogs(prev => [
-              `[${new Date().toLocaleTimeString()}] 🎉 场景执行完成!`,
+              `[${new Date().toLocaleTimeString()}] ${t('capability.log.completed')}`,
               ...prev.slice(0, 20)
             ]);
 
@@ -728,7 +851,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
 
     // 添加决策日志
     setExecutionLogs(prev => [
-      `[${new Date().toLocaleTimeString()}] 👤 人工决策: ${option.label}`,
+      `[${new Date().toLocaleTimeString()}] 👤 ${t('capability.decision.humanDecision')}: ${option.label}`,
       ...prev.slice(0, 20)
     ]);
 
@@ -739,7 +862,9 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     // 如果选择修改，显示编辑对话框
     if (option.id === 'option-modify') {
       // 预填充AI建议的话术
-      const defaultScript = '【第1轮-问题确认】"李先生您好，我是客服主管王芳。非常抱歉这次给您带来困扰。我已详细查看您的反馈：购买的智能手表在使用3周后出现功能缺陷，且之前2次联系客服未得到满意解决。这确实是我们的服务失误，我代表公司向您真诚道歉。"\n\n【第2轮-解决方案】"针对您的情况，我们立即为您安排：①全额退款¥12,800，预计2小时内到账；②作为VIP客户的补偿，我们额外提供3000积分、¥500全场优惠券和3个月VIP会员延期；③我们已为您配备专属客户经理张经理（手机：138xxxx），他会在48小时内与您联系，后续任何问题都可以直接找他，绕过普通客服流程。"\n\n【第3轮-情感维系】"李先生，您是我们的3年老客户，累计消费12万元，我们非常珍视这份信任。这次产品问题和服务疏漏让您失望，我们深感自责。我会亲自跟进您的退款和补偿，3天后再次致电确认您的满意度。期待能重新赢得您的信任，也欢迎随时向我反馈改进建议。我的直线电话：400-xxx-8888转分机9001。"';
+      const defaultScriptCn = '【第1轮-问题确认】"李先生您好，我是客服主管王芳。非常抱歉这次给您带来困扰。我已详细查看您的反馈：购买的智能手表在使用3周后出现功能缺陷，且之前2次联系客服未得到满意解决。这确实是我们的服务失误，我代表公司向您真诚道歉。"\n\n【第2轮-解决方案】"针对您的情况，我们立即为您安排：①全额退款¥12,800，预计2小时内到账；②作为VIP客户的补偿，我们额外提供3000积分、¥500全场优惠券和3个月VIP会员延期；③我们已为您配备专属客户经理张经理（手机：138xxxx），他会在48小时内与您联系，后续任何问题都可以直接找他，绕过普通客服流程。"\n\n【第3轮-情感维系】"李先生，您是我们的3年老客户，累计消费12万元，我们非常珍视这份信任。这次产品问题和服务疏漏让您失望，我们深感自责。我会亲自跟进您的退款和补偿，3天后再次致电确认您的满意度。期待能重新赢得您的信任，也欢迎随时向我反馈改进建议。我的直线电话：400-xxx-8888转分机9001。"';
+      const defaultScriptEn = '【Round 1 - Problem Confirmation】"Hello Mr. Li, I\'m Wang Fang, Customer Service Manager. I sincerely apologize for the inconvenience this has caused you. I\'ve thoroughly reviewed your feedback: the smartwatch you purchased developed functional defects after 3 weeks of use, and your 2 previous contacts with customer service did not receive satisfactory resolution. This is indeed our service failure, and I offer you a sincere apology on behalf of the company."\n\n【Round 2 - Solution】"Regarding your situation, we will immediately arrange for you: ① Full refund of ¥12,800, expected to arrive within 2 hours; ② As compensation for our VIP customer, we will additionally provide 3,000 points, a ¥500 store-wide voucher, and 3-month VIP membership extension; ③ We have assigned you a dedicated account manager, Manager Zhang (mobile: 138xxxx), who will contact you within 48 hours. For any future issues, you can contact him directly, bypassing the regular customer service process."\n\n【Round 3 - Relationship Maintenance】"Mr. Li, you have been our valued customer for 3 years with a total spending of ¥120,000. We deeply value this trust. The product issue and service oversight that disappointed you make us feel deeply remorseful. I will personally follow up on your refund and compensation, and will call you again in 3 days to confirm your satisfaction. We hope to regain your trust and welcome your feedback and suggestions for improvement at any time. My direct line: 400-xxx-8888 ext. 9001."';
+      const defaultScript = language === 'zh' ? defaultScriptCn : defaultScriptEn;
       setEditedScript(defaultScript);
       setShowEditDialog(true);
       return; // 不执行后续流程，等待编辑完成
@@ -781,7 +906,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
 
     // 显示确认消息
     setExecutionLogs(prev => [
-      `[${new Date().toLocaleTimeString()}] ✏️ 话术修改完成，继续执行流程`,
+      `[${new Date().toLocaleTimeString()}] ✏️ ${t('capability.decision.scriptModified')}`,
       ...prev.slice(0, 20)
     ]);
 
@@ -813,7 +938,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
         setTaskProgress(((currentStepNumber + 1) / selectedTask.workflow.length) * 100);
 
         setExecutionLogs(prev => [
-          `[${new Date().toLocaleTimeString()}] 📋 ${step.agentName} 正在执行: ${step.action}`,
+          `[${new Date().toLocaleTimeString()}] 📋 ${getAgentName(step.agentId, language)} ${t('capability.log.executing')}: ${language === 'zh' ? step.action : step.actionEn}`,
           ...prev.slice(0, 20)
         ]);
 
@@ -822,7 +947,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
           setCurrentExecutingAgent(null);
 
           setExecutionLogs(prev => [
-            `[${new Date().toLocaleTimeString()}] ✅ ${step.agentName} 已完成 ${step.action}`,
+            `[${new Date().toLocaleTimeString()}] ✅ ${getAgentName(step.agentId, language) || step.agentId} ${t('capability.log.agentCompleted')} ${language === 'zh' ? step.action : step.actionEn}`,
             ...prev.slice(0, 30)
           ]);
 
@@ -833,7 +958,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
             // 所有workflow步骤执行完成
             if (decisionOptionId && selectedTask.id === 'scenario-04') {
               // 场景04：显示最终执行日志
-              const finalLogs = decisionOptionId === 'option-approve'
+              const finalLogsCn = decisionOptionId === 'option-approve'
                 ? [
                     '💳 发起全额退款¥12,800（支付宝）',
                     '💸 退款已提交，预计2小时到账',
@@ -849,6 +974,25 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                     '📞 安排回访计划',
                     '💰 优化方案执行完成'
                   ];
+
+              const finalLogsEn = decisionOptionId === 'option-approve'
+                ? [
+                    '💳 Initiating full refund ¥12,800 (Alipay)',
+                    '💸 Refund submitted, expected within 2 hours',
+                    '🎁 VIP compensation package issued (3000 points + ¥500 voucher + 3-month VIP)',
+                    '👤 Dedicated account manager assigned: Manager Zhang',
+                    '📞 3-day follow-up call scheduled',
+                    '💰 Plan execution complete, customer retained'
+                  ]
+                : [
+                    '💳 Executing refund and compensation per modified plan',
+                    '📧 Sending customized email and SMS notifications',
+                    '👤 Dedicated account manager assigned for follow-up',
+                    '📞 Follow-up plan scheduled',
+                    '💰 Optimized plan execution complete'
+                  ];
+
+              const finalLogs = language === 'zh' ? finalLogsCn : finalLogsEn;
 
               finalLogs.forEach((log, index) => {
                 setTimeout(() => {
@@ -881,33 +1025,51 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     // 根据场景和决策路径生成不同的完成消息
     const getCompletionMessage = (scenarioId: string, optionId: string): string => {
       if (scenarioId === 'scenario-01') {
-        const messages: Record<string, string> = {
+        const messagesCn: Record<string, string> = {
           'option-continue': '🎉 完整审查流程已完成！',
           'option-negotiate': '📋 修改建议已生成，等待协商',
           'option-abort': '🛑 合作终止流程已完成',
           'continue': '🎉 完整审查流程已完成！' // 兼容旧版本
         };
-        return messages[optionId] || '🎉 场景执行完成!';
+        const messagesEn: Record<string, string> = {
+          'option-continue': '🎉 Complete review process finished!',
+          'option-negotiate': '📋 Modification suggestions generated, awaiting negotiation',
+          'option-abort': '🛑 Termination process completed',
+          'continue': '🎉 Complete review process finished!'
+        };
+        const messages = language === 'zh' ? messagesCn : messagesEn;
+        return messages[optionId] || (language === 'zh' ? '🎉 场景执行完成!' : '🎉 Scenario execution completed!');
       } else if (scenarioId === 'scenario-02') {
-        const messages: Record<string, string> = {
+        const messagesCn: Record<string, string> = {
           'option-continue': '🎉 深度调查报告已生成！',
           'option-guarantee': '⚠️ 担保方案已发送，等待反馈',
           'option-reject': '❌ 拒绝合作通知已发送'
         };
-        return messages[optionId] || '🎉 场景执行完成!';
+        const messagesEn: Record<string, string> = {
+          'option-continue': '🎉 In-depth investigation report generated!',
+          'option-guarantee': '⚠️ Guarantee plan sent, awaiting feedback',
+          'option-reject': '❌ Rejection notice sent'
+        };
+        const messages = language === 'zh' ? messagesCn : messagesEn;
+        return messages[optionId] || (language === 'zh' ? '🎉 场景执行完成!' : '🎉 Scenario execution completed!');
       } else if (scenarioId === 'scenario-04') {
-        const messages: Record<string, string> = {
+        const messagesCn: Record<string, string> = {
           'option-approve': '💰 AI方案执行完成，客户已挽回',
           'option-modify': '✏️ 优化方案执行完成，客户已挽回'
         };
-        return messages[optionId] || '🎉 场景执行完成!';
+        const messagesEn: Record<string, string> = {
+          'option-approve': '💰 AI plan execution complete, customer retained',
+          'option-modify': '✏️ Optimized plan execution complete, customer retained'
+        };
+        const messages = language === 'zh' ? messagesCn : messagesEn;
+        return messages[optionId] || (language === 'zh' ? '🎉 场景执行完成!' : '🎉 Scenario execution completed!');
       }
-      return '🎉 场景执行完成!';
+      return language === 'zh' ? '🎉 场景执行完成!' : '🎉 Scenario execution completed!';
     };
 
     const completionMessage = selectedTask
       ? getCompletionMessage(selectedTask.id, path)
-      : '🎉 场景执行完成!';
+      : (language === 'zh' ? '🎉 场景执行完成!' : '🎉 Scenario execution completed!');
 
     setExecutionLogs(prev => [
       `[${new Date().toLocaleTimeString()}] ${completionMessage}`,
@@ -1128,18 +1290,17 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
             max-w-[8rem] overflow-hidden text-ellipsis
             drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]
           "
-          title={agent.name}
+          title={language === 'zh' ? agent.name : agent.nameEn}
         >
-          {agent.name}
+          {language === 'zh' ? agent.name : agent.nameEn}
         </div>
 
         {isHovered && (
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-8 z-50 whitespace-nowrap">
             <div className="bg-background/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-xl">
-              <div className="text-sm font-medium">{agent.name}</div>
-              <div className="text-xs text-muted-foreground">{agent.nameEn}</div>
+              <div className="text-sm font-medium">{language === 'zh' ? agent.name : agent.nameEn}</div>
               <div className="text-xs text-accent">{agent.role}</div>
-              {hasOutput && <div className="text-xs text-blue-400 mt-1">点击查看输出</div>}
+              {hasOutput && <div className="text-xs text-blue-400 mt-1">{language === 'zh' ? '点击查看输出' : 'Click to view output'}</div>}
             </div>
           </div>
         )}
@@ -1160,15 +1321,15 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
               className="flex items-center space-x-2 text-base px-4 py-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>返回</span>
+              <span>{t('back')}</span>
             </Button>
 
             <div className="text-center">
               <h1 className="text-3xl font-bold text-foreground mb-1">
-                AI智能协同平台
+                {t('capability.matrix.title')}
               </h1>
               <p className="text-lg text-muted-foreground font-medium">
-                50+ 智能模块 · 跨领域协作演示
+                {t('capability.matrix.subtitle')}
               </p>
             </div>
 
@@ -1220,8 +1381,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                 className="absolute pointer-events-none"
                 style={{ left: `${dept.x}%`, top: `${dept.y}%` }}
               >
-                <div className="text-lg font-bold text-foreground/70">{dept.label}</div>
-                <div className="text-sm text-muted-foreground/60 uppercase tracking-wide">{dept.subtitle}</div>
+                <div className="text-lg font-bold text-foreground/70">{t(`capability.dept.${dept.id}`)}</div>
               </div>
             ))}
 
@@ -1262,7 +1422,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                   ? 'text-green-400'
                   : 'text-primary'
               }`}>
-                🌟 中央调度
+                🌟 {t('capability.matrix.dispatcher')}
               </div>
             </div>
 
@@ -1276,23 +1436,23 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
               onClick={() => setCanvasScale(Math.min(3, canvasScale + 0.2))}
               className="px-4 py-2 bg-primary/20 hover:bg-primary/30 rounded text-sm font-semibold transition-colors"
             >
-              放大 +
+              {t('capability.matrix.zoomIn')} +
             </button>
             <div className="text-center text-sm text-foreground font-medium">{Math.round(canvasScale * 100)}%</div>
             <button
               onClick={() => setCanvasScale(Math.max(0.5, canvasScale - 0.2))}
               className="px-4 py-2 bg-primary/20 hover:bg-primary/30 rounded text-sm font-semibold transition-colors"
             >
-              缩小 -
+              {t('capability.matrix.zoomOut')} -
             </button>
             <button
               onClick={() => { setCanvasScale(1); setCanvasPosition({ x: 0, y: 0 }); }}
               className="px-4 py-2 bg-accent/20 hover:bg-accent/30 rounded text-sm font-semibold transition-colors"
             >
-              重置
+              {t('capability.matrix.reset')}
             </button>
             <div className="text-xs text-muted-foreground text-center mt-2">
-              滚轮缩放画布
+              {t('capability.matrix.scrollToZoom')}
             </div>
           </div>
         </div>
@@ -1310,7 +1470,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
             <div className="flex items-center space-x-3">
               <Zap className="w-5 h-5 text-tech-blue animate-pulse" />
               <h3 className="text-lg font-bold bg-gradient-to-r from-tech-blue to-primary bg-clip-text text-transparent">
-                🚀 智能场景池
+                {t('capability.matrix.smartScenarioPool')}
               </h3>
               <span className="text-sm text-tech-blue/80 font-mono">[{taskCards.length} SCENARIOS]</span>
             </div>
@@ -1341,15 +1501,14 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xs font-bold text-tech-blue bg-tech-blue/10 px-2 py-0.5 rounded border border-tech-blue/30">
-                              {task.id.replace('scenario-', '场景')}
+                              {t('capability.matrix.scenario')} {task.id.replace('scenario-', '')}
                             </span>
-                            <h4 className="font-bold text-base group-hover:text-primary transition-colors">{task.title}</h4>
+                            <h4 className="font-bold text-base group-hover:text-primary transition-colors">{language === 'zh' ? task.title : task.titleEn}</h4>
                           </div>
-                          <p className="text-xs text-accent mb-2 font-medium">{task.titleEn}</p>
-                          <p className="text-xs text-muted-foreground leading-relaxed">{task.description}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{language === 'zh' ? task.description : task.descriptionEn}</p>
                           <div className="flex items-center justify-between mt-3 p-2 bg-black/60 rounded border border-tech-blue/20">
                             <div className="text-lg font-bold text-tech-green font-mono">{task.requiredModules.length.toString().padStart(2, '0')}</div>
-                            <div className="text-xs text-tech-blue/80 font-mono">MODULES</div>
+                            <div className="text-xs text-tech-blue/80 font-mono uppercase">{t('capability.matrix.modules')}</div>
                           </div>
                         </div>
                       </div>
@@ -1376,7 +1535,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
         <div className="p-5 border-b border-tech-blue/30 bg-gradient-to-r from-black/80 via-tech-blue/10 to-black/80 relative z-10">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xl font-bold bg-gradient-to-r from-tech-blue to-primary bg-clip-text text-transparent">
-              📡 执行监控中心
+              {t('capability.matrix.executionMonitor')}
             </h3>
             <div className="flex items-center space-x-1">
               <div className={`w-2 h-2 rounded-full ${executionState === 'running' ? 'bg-green-400 animate-pulse' : executionState === 'completed' ? 'bg-tech-blue' : 'bg-gray-600'}`} />
@@ -1397,7 +1556,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
         {selectedTask && (
           <div className="p-5 border-b border-tech-blue/30 bg-black/60 relative z-10">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-base font-bold text-tech-blue font-mono">[{selectedTask.title}]</span>
+              <span className="text-base font-bold text-tech-blue font-mono">[{language === 'zh' ? selectedTask.title : selectedTask.titleEn}]</span>
               <span className="text-sm font-mono text-green-400">{Math.round(taskProgress).toString().padStart(3, '0')}%</span>
             </div>
 
@@ -1424,10 +1583,10 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                     }`} />
                     <div className="flex-1">
                       <div className="text-xs font-mono text-tech-blue/90">
-                        {step.agentName}
+                        {getAgentName(step.agentId, language)}
                       </div>
                       <div className="text-xs font-mono text-tech-green/70">
-                        ▶ {step.action}
+                        ▶ {language === 'zh' ? step.action : step.actionEn}
                       </div>
                     </div>
                     <div className="text-xs font-mono">
@@ -1439,8 +1598,8 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
             </div>
 
             <div className="flex justify-between text-xs font-mono mt-3 pt-2 border-t border-tech-blue/20">
-              <span className="text-tech-green">▶ COMPLETED: {completedAgents.length}/{selectedTask.workflow.length}</span>
-              <span className="text-accent">▶ PROGRESS: {Math.min(currentStepIndex + 1, selectedTask.workflow.length)}/{selectedTask.workflow.length}</span>
+              <span className="text-tech-green">▶ {t('capability.monitor.completed')}: {completedAgents.length}/{selectedTask.workflow.length}</span>
+              <span className="text-accent">▶ {t('capability.monitor.progress')}: {Math.min(currentStepIndex + 1, selectedTask.workflow.length)}/{selectedTask.workflow.length}</span>
             </div>
           </div>
         )}
@@ -1450,11 +1609,11 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
           <div className="p-5 border-b border-tech-blue/30 bg-gradient-to-r from-black/80 via-tech-green/5 to-black/80 relative z-10">
             <div className="text-base font-bold text-tech-green mb-2 font-mono flex items-center">
               <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse mr-2" />
-              [ACTIVE PROCESS]
+              [{t('capability.monitor.activeProcess')}]
             </div>
             <div className="text-sm font-mono bg-black/60 border border-tech-green/30 rounded p-2">
-              <div className="text-tech-blue mb-1">▶ AGENT: {selectedTask.workflow[currentStepIndex]?.agentName}</div>
-              <div className="text-accent">▶ ACTION: {selectedTask.workflow[currentStepIndex]?.action}</div>
+              <div className="text-tech-blue mb-1">▶ {t('capability.monitor.agent')}: {getAgentName(selectedTask.workflow[currentStepIndex]?.agentId, language)}</div>
+              <div className="text-accent">▶ {t('capability.monitor.action')}: {language === 'zh' ? selectedTask.workflow[currentStepIndex]?.action : selectedTask.workflow[currentStepIndex]?.actionEn}</div>
             </div>
           </div>
         )}
@@ -1474,7 +1633,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                 onClick={() => setShowLogDialog(true)}
               >
                 <Maximize2 className="w-3 h-3" />
-                放大
+                {t('capability.matrix.expandLog')}
               </Button>
               <span className="text-xs font-mono text-tech-blue/60">LIVE</span>
             </div>
@@ -1504,7 +1663,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
-              <span>Agent 输出详情</span>
+              <span>{t('capability.matrix.agentOutputTitle')}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -1528,7 +1687,7 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
           <DialogHeader className="border-b border-tech-blue/30 pb-4">
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-tech-blue to-tech-green bg-clip-text text-transparent flex items-center gap-3">
               <Activity className="w-7 h-7 text-tech-green animate-pulse" />
-              实时执行日志 / Real-time Execution Logs
+              {t('capability.matrix.logDialogTitle')}
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
@@ -1578,20 +1737,20 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-gradient flex items-center space-x-2">
               <span>✏️</span>
-              <span>编辑客服话术</span>
+              <span>{t('capability.matrix.editScript')}</span>
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
             <div className="text-sm text-muted-foreground">
-              请根据实际情况修改AI生成的客服话术，优化后点击"确认修改"继续执行
+              {t('capability.matrix.editScriptDesc')}
             </div>
 
             <textarea
               value={editedScript}
               onChange={(e) => setEditedScript(e.target.value)}
               className="w-full h-96 p-4 rounded-lg border border-border bg-background/50 text-foreground font-mono text-sm leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="请输入客服话术..."
+              placeholder={t('capability.matrix.scriptPlaceholder')}
             />
 
             <div className="flex justify-end space-x-3">
@@ -1600,13 +1759,13 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                 onClick={() => setShowEditDialog(false)}
                 className="px-6"
               >
-                取消
+                {t('capability.matrix.cancel')}
               </Button>
               <Button
                 onClick={handleEditConfirm}
                 className="px-6 bg-primary hover:bg-primary/90"
               >
-                确认修改并继续执行
+                {t('capability.matrix.confirmEdit')}
               </Button>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, CheckCircle, XCircle } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface DecisionOption {
   id: string;
@@ -27,6 +28,7 @@ interface DecisionDialogProps {
 }
 
 export const DecisionDialog = ({ open, decision, onDecide }: DecisionDialogProps) => {
+  const { t } = useLanguage();
   if (!decision) return null;
 
   const getColorClass = (color: string) => {
@@ -71,7 +73,7 @@ export const DecisionDialog = ({ open, decision, onDecide }: DecisionDialogProps
 
         {/* 关键信息展示 */}
         <div className="my-6 space-y-3">
-          <h3 className="text-sm font-semibold text-foreground mb-3">📊 关键信息</h3>
+          <h3 className="text-sm font-semibold text-foreground mb-3">📊 {t('capability.decision.keyInfo')}</h3>
           <div className="grid grid-cols-2 gap-3">
             {decision.keyInfo.map((info, idx) => (
               <div
@@ -88,7 +90,7 @@ export const DecisionDialog = ({ open, decision, onDecide }: DecisionDialogProps
         {/* 风险详情 */}
         {decision.riskDetails && decision.riskDetails.length > 0 && (
           <div className="mb-6 space-y-3">
-            <h3 className="text-sm font-semibold text-foreground mb-3">⚠️ 风险详情</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">{t('capability.decision.riskDetails')}</h3>
             <div className="max-h-64 overflow-y-auto space-y-2 pr-2">
               {decision.riskDetails.map((risk, idx) => (
                 <div
@@ -109,7 +111,7 @@ export const DecisionDialog = ({ open, decision, onDecide }: DecisionDialogProps
                         ? 'bg-yellow-500 text-white'
                         : 'bg-blue-500 text-white'
                     }`}>
-                      {risk.severity === 'high' ? '高风险' : risk.severity === 'medium' ? '中风险' : '低风险'}
+                      {risk.severity === 'high' ? t('capability.decision.high') : risk.severity === 'medium' ? t('capability.decision.medium') : t('capability.decision.low')}
                     </span>
                     <div className="flex-1">
                       <div className="font-semibold text-sm text-foreground mb-1">{risk.title}</div>
@@ -125,7 +127,7 @@ export const DecisionDialog = ({ open, decision, onDecide }: DecisionDialogProps
         {/* AI建议方案 */}
         {decision.aiRecommendations && decision.aiRecommendations.length > 0 && (
           <div className="mb-6 space-y-3">
-            <h3 className="text-base font-semibold text-foreground mb-3">💡 AI建议方案</h3>
+            <h3 className="text-base font-semibold text-foreground mb-3">{t('capability.decision.aiRecommendations')}</h3>
             <div className="max-h-64 overflow-y-auto space-y-3 pr-2">
               {decision.aiRecommendations.map((recommendation, idx) => (
                 <div
@@ -134,7 +136,7 @@ export const DecisionDialog = ({ open, decision, onDecide }: DecisionDialogProps
                 >
                   <div className="flex items-start space-x-3">
                     <span className="text-xs font-bold px-2 py-1 rounded bg-blue-500 text-white flex-shrink-0">
-                      AI建议
+                      {t('capability.decision.aiSuggestion')}
                     </span>
                     <div className="flex-1">
                       <div className="font-semibold text-base text-foreground mb-2">{recommendation.title}</div>
@@ -154,7 +156,7 @@ export const DecisionDialog = ({ open, decision, onDecide }: DecisionDialogProps
               ❓ {decision.question}
             </h3>
             <p className="text-sm text-muted-foreground">
-              请根据以上信息做出决策，不同选择将影响后续执行流程和结果
+              {t('capability.decision.decisionPrompt')}
             </p>
           </div>
         </div>
@@ -180,7 +182,7 @@ export const DecisionDialog = ({ open, decision, onDecide }: DecisionDialogProps
 
         {/* 提示信息 */}
         <div className="mt-4 text-center text-sm text-muted-foreground">
-          💡 此决策将被记录并影响后续流程和最终结果
+          💡 {t('capability.decision.recordNotice')}
         </div>
       </DialogContent>
     </Dialog>

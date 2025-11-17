@@ -3,6 +3,7 @@ import { SelectedScenario } from '@/pages/CapabilityHubPage';
 import { QrCode, Download, FileText, Globe, RotateCcw, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import qrCodeImage from '@/assets/qr-code.png';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ResultCollectionProps {
   scenario: SelectedScenario | null;
@@ -10,6 +11,7 @@ interface ResultCollectionProps {
 }
 
 export const CapabilityResultCollection = ({ scenario, onRestart }: ResultCollectionProps) => {
+  const { t } = useLanguage();
   const [qrGenerated, setQrGenerated] = useState(false);
 
   // Handle null scenario gracefully
@@ -53,7 +55,7 @@ export const CapabilityResultCollection = ({ scenario, onRestart }: ResultCollec
         {/* 扫描二维码标题 */}
         <div className="mb-12 fade-in-up">
           <h1 className="text-5xl font-bold text-gradient mb-4">
-            扫描二维码！
+            {t('capability.collection.title')}
           </h1>
         </div>
 
@@ -83,7 +85,7 @@ export const CapabilityResultCollection = ({ scenario, onRestart }: ResultCollec
             className="px-8 py-4 text-xl bg-primary hover:bg-primary/90 glow-effect"
           >
             <RotateCcw className="w-6 h-6 mr-3" />
-            开始新的体验
+            {t('capability.collection.startNew')}
           </Button>
         </div>
       </div>

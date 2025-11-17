@@ -3,6 +3,7 @@ import { CapabilityEntryLayer } from '@/components/capability/CapabilityEntryLay
 import { CapabilityMatrixLayer } from '@/components/capability/CapabilityMatrixLayer';
 import { CapabilityResultDisplay } from '@/components/capability/CapabilityResultDisplay';
 import { CapabilityResultCollection } from '@/components/capability/CapabilityResultCollection';
+import { LanguageSwitch } from '@/components/LanguageSwitch';
 
 export type CapabilityStep =
   | 'entry'
@@ -90,6 +91,11 @@ const CapabilityHubPage = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden relative">
+      {/* Language Switch Button */}
+      <div className="fixed top-6 right-6 z-50">
+        <LanguageSwitch />
+      </div>
+
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-tech-blue/5" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,hsl(210_100%_50%/0.1),transparent_50%)]" />
