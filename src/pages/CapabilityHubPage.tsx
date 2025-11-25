@@ -2,14 +2,12 @@ import { useState } from 'react';
 import { CapabilityEntryLayer } from '@/components/capability/CapabilityEntryLayer';
 import { CapabilityMatrixLayer } from '@/components/capability/CapabilityMatrixLayer';
 import { CapabilityResultDisplay } from '@/components/capability/CapabilityResultDisplay';
-import { CapabilityResultCollection } from '@/components/capability/CapabilityResultCollection';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
 
 export type CapabilityStep =
   | 'entry'
   | 'matrix'
-  | 'results'
-  | 'collection';
+  | 'results';
 
 export interface SelectedScenario {
   id: string;
@@ -53,7 +51,7 @@ const CapabilityHubPage = () => {
 
   const resetDemo = () => {
     setSelectedScenario(null);
-    goToStep('entry');
+    goToStep('matrix');
   };
 
   const renderCurrentLayer = () => {
@@ -74,14 +72,7 @@ const CapabilityHubPage = () => {
         return (
           <CapabilityResultDisplay
             scenario={selectedScenario}
-            onContinue={() => goToStep('collection')}
-          />
-        );
-      case 'collection':
-        return (
-          <CapabilityResultCollection
-            scenario={selectedScenario}
-            onRestart={resetDemo}
+            onContinue={resetDemo}
           />
         );
       default:
@@ -113,13 +104,13 @@ const CapabilityHubPage = () => {
       {/* Progress Indicator */}
       <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
         <div className="flex space-x-2">
-          {['entry', 'matrix', 'results', 'collection'].map((step, index) => (
+          {['entry', 'matrix', 'results'].map((step, index) => (
             <div
               key={step}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 step === currentStep
                   ? 'bg-primary scale-125 shadow-[0_0_10px_hsl(210_100%_50%)]'
-                  : index < ['entry', 'matrix', 'results', 'collection'].indexOf(currentStep)
+                  : index < ['entry', 'matrix', 'results'].indexOf(currentStep)
                   ? 'bg-accent'
                   : 'bg-muted-foreground/30'
               }`}

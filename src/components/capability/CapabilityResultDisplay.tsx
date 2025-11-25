@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { SelectedScenario } from '@/pages/CapabilityHubPage';
-import { TrendingUp, Clock, Shield, CheckCircle, ArrowRight, FileText, BarChart, Activity } from 'lucide-react';
+import { TrendingUp, Clock, Shield, CheckCircle, RotateCcw, FileText, BarChart, Activity } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -1323,19 +1323,16 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
             </div>
           </div>
 
-          {/* Continue Button */}
+          {/* Restart Button */}
           <div className="text-center fade-in-up" style={{ animationDelay: '0.6s' }}>
             <Button
               onClick={onContinue}
               size="lg"
               className="px-8 py-4 text-lg glow-effect hover:scale-105 transition-all duration-300"
             >
-              {t('capability.result.viewComplete')}
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <RotateCcw className="w-5 h-5 mr-2" />
+              {t('capability.collection.startNew')}
             </Button>
-            <p className="text-sm text-muted-foreground mt-3">
-              {t('result.download')}
-            </p>
           </div>
         </div>
       </div>
