@@ -69,22 +69,22 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
         }
       },
       'scenario-03': {
-        title: '设备智能预警报告',
-        titleEn: 'Equipment Intelligent Alert Report',
-        summary: '设备监控系统通过AI异常检测发现3号注塑机存在故障征兆，预测48小时内故障概率85%，剩余寿命约120小时，已生成紧急维护工单。',
-        summaryEn: 'Equipment monitoring system detected fault indicators in Injection Machine #3 via AI anomaly detection. Predicted failure probability: 85% within 48 hours. Remaining useful life: ~120 hours. Emergency maintenance work order generated.',
+        title: '智能服务开通执行报告',
+        titleEn: 'Smart Service Onboarding Report',
+        summary: 'AI系统自动完成全流程：验证客户资格（合同有效期至2025.12）→ 解析3份授权文档（信息完整率100%）→ 协调开通时间（2024-12-01 14:00）→ 配置系统权限并通知相关团队。整个流程无需人工介入，运营负责人可查看总结报告进行抽检确认。',
+        summaryEn: 'AI system automatically completed full process: Verified customer eligibility (contract valid until 2025.12) → Parsed 3 authorization documents (100% information completeness) → Coordinated activation time (2024-12-01 14:00) → Configured system permissions and notified teams. Entire process required no manual intervention, operations manager can review summary report for spot checks.',
         metrics: {
           pages: 8,
-          charts: 12,
+          charts: 4,
           insights: 6,
-          recommendations: 4
+          recommendations: 3
         },
-        tags: ['异常检测', '故障预测', 'RUL评估', '传感器数据', '维护工单', '预警通知'],
-        tagsEn: ['Anomaly Detection', 'Fault Prediction', 'RUL Assessment', 'Sensor Data', 'Work Order', 'Alert Notification'],
+        tags: ['自动化开通', '文档解析', '资源排期', '零人工介入', '末端抽检', '效率提升'],
+        tagsEn: ['Automated Onboarding', 'Document Parsing', 'Resource Scheduling', 'Zero Manual Intervention', 'Spot Check', 'Efficiency Boost'],
         roi: {
-          time: { value: '-96%', desc: '检测时间 实时监控', descEn: 'Detection time: Real-time monitoring' },
-          efficiency: { value: '+92%', desc: '故障预测准确率', descEn: 'Fault prediction accuracy' },
-          risk: { value: '-85%', desc: '停机损失降低', descEn: 'Downtime loss reduction' }
+          time: { value: '-94%', desc: '开通时间 3天 → 4小时', descEn: 'Onboarding time: 3 days → 4 hours' },
+          efficiency: { value: '+88%', desc: '流程自动化率', descEn: 'Process automation rate' },
+          risk: { value: '-72%', desc: '人为错误降低', descEn: 'Human error reduction' }
         }
       },
       'scenario-04': (() => {
@@ -190,25 +190,90 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
           risk: { value: '-91%', desc: '合规风险降低', descEn: 'Compliance risk reduction' }
         }
       },
-      'scenario-06': {
-        title: '财务异常检测报告',
-        titleEn: 'Financial Anomaly Detection Report',
-        summary: '异常检测引擎发现12笔可疑交易，包括2笔异常金额、5笔频繁小额支付、3笔重复支付，总金额¥285万，风险等级：高，建议立即启动审计流程。',
-        summaryEn: 'Anomaly detection engine identified 12 suspicious transactions: 2 abnormal amounts, 5 frequent small payments, 3 duplicate payments. Total amount: ¥2.85M. Risk level: High. Recommend immediate audit process initiation.',
-        metrics: {
-          pages: 14,
-          charts: 10,
-          insights: 12,
-          recommendations: 8
-        },
-        tags: ['异常交易', '模式识别', '会计合规', '审计线索', '风险评估', '检测报告'],
-        tagsEn: ['Anomaly Transactions', 'Pattern Recognition', 'Accounting Compliance', 'Audit Clues', 'Risk Assessment', 'Detection Report'],
-        roi: {
-          time: { value: '-97%', desc: '检测时间 实时监控', descEn: 'Detection time: Real-time monitoring' },
-          efficiency: { value: '+94%', desc: '异常识别准确率', descEn: 'Anomaly detection accuracy' },
-          risk: { value: '-88%', desc: '财务损失风险降低', descEn: 'Financial loss risk reduction' }
+      'scenario-06': (() => {
+        // 根据决策历史返回不同的结果
+        const decision = scenario?.decisionHistory?.[0];
+        const decisionPath = decision?.optionId || 'default';
+
+        if (decisionPath === 'option-approve') {
+          // 财务审批通过：执行AI调整方案
+          return {
+            title: '账单调整执行报告',
+            titleEn: 'Billing Adjustment Execution Report',
+            summary: '您审核通过了AI生成的调整方案。系统自动执行：增值服务费部分退款¥1,400（50%） + 客户解释邮件（说明计费规则） + 销售流程改进通知 + 客户关怀礼包（200积分）。客户满意度从不满（35%）提升至80%，投诉成功化解，客户关系得以维护。AI调整方案执行效果良好！',
+            summaryEn: 'You approved the AI-generated adjustment plan. System auto-executed: Value-added service partial refund ¥1,400 (50%) + Customer explanation email (billing rules clarification) + Sales process improvement notification + Customer care package (200 points). Customer satisfaction increased from dissatisfied (35%) to 80%, complaint successfully resolved, customer relationship maintained. Excellent AI adjustment plan execution!',
+            metrics: {
+              pages: 10,
+              charts: 6,
+              insights: 8,
+              recommendations: 4
+            },
+            tags: ['AI方案', '部分退款', '客户解释', '流程改进', '满意度提升', '投诉化解'],
+            tagsEn: ['AI Solution', 'Partial Refund', 'Customer Explanation', 'Process Improvement', 'Satisfaction Boost', 'Complaint Resolution'],
+            roi: {
+              time: { value: '-91%', desc: '处理时间 3天 → 4小时', descEn: 'Processing time: 3 days → 4 hours' },
+              efficiency: { value: '+128%', desc: '客户满意度提升', descEn: 'Customer satisfaction improvement' },
+              risk: { value: '-65%', desc: '财务纠纷风险降低', descEn: 'Financial dispute risk reduction' }
+            },
+            decisionOutcome: {
+              label: '✅ 方案通过',
+              labelEn: '✅ Plan Approved',
+              color: 'green',
+              result: 'AI调整方案执行顺利！部分退款¥1,400 + 解释说明成功化解客户投诉。满意度提升至80%，客户表示理解并认可处理方式，避免升级纠纷。',
+              resultEn: 'AI adjustment plan executed smoothly! Partial refund ¥1,400 + explanation successfully resolved customer complaint. Satisfaction increased to 80%, customer expressed understanding and approval of handling method, avoided escalation.'
+            }
+          };
+        } else if (decisionPath === 'option-reject') {
+          // 财务审批拒绝：维持原账单
+          return {
+            title: '账单维持决策报告',
+            titleEn: 'Billing Maintained Decision Report',
+            summary: '您审核后拒绝了AI的调整建议，决定维持原账单。理由：增值服务已实际提供，销售流程虽有疏漏但不影响计费合理性。系统执行：发送详细计费说明邮件 + 销售培训改进通知 + 客户关怀补偿（100积分作为情绪安抚）。客户接受解释，满意度从35%恢复至65%，投诉结案。',
+            summaryEn: 'After review, you rejected the AI adjustment recommendation and decided to maintain original bill. Reason: Value-added services were actually provided, sales process had oversight but does not affect billing legitimacy. System executed: Sent detailed billing explanation email + Sales training improvement notification + Customer care compensation (100 points as goodwill gesture). Customer accepted explanation, satisfaction recovered from 35% to 65%, complaint closed.',
+            metrics: {
+              pages: 9,
+              charts: 5,
+              insights: 7,
+              recommendations: 3
+            },
+            tags: ['人工决策', '维持账单', '详细解释', '销售培训', '客户安抚', '投诉结案'],
+            tagsEn: ['Manual Decision', 'Bill Maintained', 'Detailed Explanation', 'Sales Training', 'Customer Appeasement', 'Complaint Closed'],
+            roi: {
+              time: { value: '-85%', desc: '处理时间 3天 → 5小时', descEn: 'Processing time: 3 days → 5 hours' },
+              efficiency: { value: '+85%', desc: '客户满意度恢复', descEn: 'Customer satisfaction recovery' },
+              risk: { value: '-55%', desc: '升级投诉风险降低', descEn: 'Escalation risk reduction' }
+            },
+            decisionOutcome: {
+              label: '❌ 方案拒绝',
+              labelEn: '❌ Plan Rejected',
+              color: 'red',
+              result: '人工决策维持原账单。通过详细解释 + 销售改进 + 情绪安抚，客户理解并接受。满意度恢复至65%，投诉成功结案，体现财务原则性。',
+              resultEn: 'Manual decision maintained original bill. Through detailed explanation + sales improvement + goodwill gesture, customer understood and accepted. Satisfaction recovered to 65%, complaint successfully closed, demonstrates financial principles.'
+            }
+          };
+        } else {
+          // 默认：AI分析完成，等待审批
+          return {
+            title: '账单调整AI分析与建议',
+            titleEn: 'Billing Adjustment AI Analysis and Recommendation',
+            summary: 'AI系统完成账单对账分析：客户投诉季度服务费高出¥2,800，根因为增值服务计费未提前说明（销售疏漏）。AI建议调整方案：增值服务费部分退款¥1,400（50%，体现诚意）+ 客户解释邮件 + 销售流程改进通知 + 客户关怀补偿。方案已生成，等待财务主管审批确认。',
+            summaryEn: 'AI system completed billing reconciliation analysis: Customer complained about ¥2,800 higher quarterly service fee, root cause is value-added service charges not explained in advance (sales oversight). AI recommended adjustment plan: Value-added service partial refund ¥1,400 (50%, showing goodwill) + Customer explanation email + Sales process improvement notification + Customer care compensation. Plan generated, awaiting financial supervisor approval.',
+            metrics: {
+              pages: 11,
+              charts: 7,
+              insights: 9,
+              recommendations: 5
+            },
+            tags: ['AI分析', '对账核查', '方案生成', '销售疏漏', '等待审批', '智能建议'],
+            tagsEn: ['AI Analysis', 'Reconciliation Check', 'Solution Generation', 'Sales Oversight', 'Pending Approval', 'Intelligent Recommendations'],
+            roi: {
+              time: { value: '-93%', desc: '分析时间 2天 → 5分钟', descEn: 'Analysis time: 2 days → 5 minutes' },
+              efficiency: { value: '+88%', desc: '方案准确度', descEn: 'Solution accuracy' },
+              risk: { value: '-70%', desc: '预期纠纷风险降低', descEn: 'Expected dispute risk reduction' }
+            }
+          };
         }
-      }
+      })()
     };
 
     const defaultContent = {
@@ -490,157 +555,146 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
             {scenario.id === 'scenario-03' && (
               <div className="space-y-4 mb-6">
                 <h3 className="text-lg font-semibold text-foreground mb-3">
-                  {t('capability.result.equipmentAlertDetails')}
+                  {language === 'zh' ? '🎯 服务开通全流程执行详情' : '🎯 Service Onboarding Full Process Details'}
                 </h3>
 
-                {/* Real-time Data Charts */}
-                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-4">
+                {/* 客户体验改善: 流程透明化 */}
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
-                    <Activity className="w-5 h-5 text-primary" />
-                    <span className="text-sm font-semibold text-primary">{language === 'zh' ? '实时监控数据趋势' : 'Real-time Monitoring Data Trends'}</span>
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span className="text-sm font-semibold text-green-400">
+                      {language === 'zh' ? '✅ 客户体验改善：流程全程透明可视' : '✅ Customer Experience: Fully Transparent Process'}
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* 温度趋势图 */}
-                    <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground flex justify-between">
-                        <span>{language === 'zh' ? '温度 (°C)' : 'Temperature (°C)'}</span>
-                        <span className="text-red-400 font-semibold">{language === 'zh' ? '↑ +12°C 异常' : '↑ +12°C Abnormal'}</span>
+                  {/* 4步流程进度可视化 */}
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">✓</div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-foreground">{language === 'zh' ? '步骤1: 账户资格核查' : 'Step 1: Account Eligibility Check'}</div>
+                        <div className="text-xs text-muted-foreground">{language === 'zh' ? '耗时: 2分钟 | 状态: 已完成 | 合同有效期至2025.12.31' : 'Duration: 2min | Status: Completed | Contract valid until 2025.12.31'}</div>
                       </div>
-                      <div className="h-24 bg-black/20 rounded relative overflow-hidden">
-                        <svg width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="none">
-                          {/* 基准线 */}
-                          <line x1="0" y1="60" x2="200" y2="60" stroke="rgb(75, 85, 99)" strokeWidth="1" strokeDasharray="3,3" />
-                          {/* 温度曲线 - 上升趋势 */}
-                          <polyline
-                            points="0,65 20,63 40,61 60,58 80,52 100,48 120,42 140,38 160,35 180,28 200,22"
-                            fill="none"
-                            stroke="rgb(239, 68, 68)"
-                            strokeWidth="2"
-                            className="animate-pulse"
-                          />
-                        </svg>
-                        <div className="absolute bottom-1 right-2 text-sm text-red-400">88°C</div>
-                        <div className="absolute bottom-1 left-2 text-sm text-muted-foreground">{language === 'zh' ? '基线:76°C' : 'Baseline:76°C'}</div>
-                      </div>
+                      <div className="text-xs text-green-400">{language === 'zh' ? '客户已收到SMS通知' : 'Customer notified via SMS'}</div>
                     </div>
 
-                    {/* 振动趋势图 */}
-                    <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground flex justify-between">
-                        <span>{language === 'zh' ? '振动频率 (Hz)' : 'Vibration Frequency (Hz)'}</span>
-                        <span className="text-red-400 font-semibold">{language === 'zh' ? '↑ +38% 异常' : '↑ +38% Abnormal'}</span>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">✓</div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-foreground">{language === 'zh' ? '步骤2: 文档智能解析' : 'Step 2: Intelligent Document Parsing'}</div>
+                        <div className="text-xs text-muted-foreground">{language === 'zh' ? '耗时: 3分钟 | 状态: 已完成 | 3份文档100%信息完整' : 'Duration: 3min | Status: Completed | 3 docs 100% info complete'}</div>
                       </div>
-                      <div className="h-24 bg-black/20 rounded relative overflow-hidden">
-                        <svg width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="none">
-                          <line x1="0" y1="70" x2="200" y2="70" stroke="rgb(75, 85, 99)" strokeWidth="1" strokeDasharray="3,3" />
-                          {/* 振动曲线 - 波动增大 */}
-                          <polyline
-                            points="0,72 20,68 40,75 60,65 80,78 100,58 120,82 140,52 160,85 180,48 200,88"
-                            fill="none"
-                            stroke="rgb(251, 146, 60)"
-                            strokeWidth="2"
-                            className="animate-pulse"
-                          />
-                        </svg>
-                        <div className="absolute bottom-1 right-2 text-sm text-orange-400">5.8Hz</div>
-                        <div className="absolute bottom-1 left-2 text-sm text-muted-foreground">{language === 'zh' ? '基线:4.2Hz' : 'Baseline:4.2Hz'}</div>
-                      </div>
+                      <div className="text-xs text-green-400">{language === 'zh' ? '客户可在线查看进度' : 'Customer can view progress online'}</div>
                     </div>
 
-                    {/* 噪音趋势图 */}
-                    <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground flex justify-between">
-                        <span>{language === 'zh' ? '噪音 (dB)' : 'Noise (dB)'}</span>
-                        <span className="text-yellow-400 font-semibold">{language === 'zh' ? '↑ +15dB 异常' : '↑ +15dB Abnormal'}</span>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">✓</div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-foreground">{language === 'zh' ? '步骤3: 资源智能排期' : 'Step 3: Intelligent Resource Scheduling'}</div>
+                        <div className="text-xs text-muted-foreground">{language === 'zh' ? '耗时: 1分钟 | 状态: 已完成 | 开通时间: 2024-12-01 14:00' : 'Duration: 1min | Status: Completed | Activation: 2024-12-01 14:00'}</div>
                       </div>
-                      <div className="h-24 bg-black/20 rounded relative overflow-hidden">
-                        <svg width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="none">
-                          <line x1="0" y1="65" x2="200" y2="65" stroke="rgb(75, 85, 99)" strokeWidth="1" strokeDasharray="3,3" />
-                          <polyline
-                            points="0,68 20,67 40,64 60,61 80,58 100,54 120,48 140,44 160,38 180,34 200,28"
-                            fill="none"
-                            stroke="rgb(234, 179, 8)"
-                            strokeWidth="2"
-                            className="animate-pulse"
-                          />
-                        </svg>
-                        <div className="absolute bottom-1 right-2 text-sm text-yellow-400">85dB</div>
-                        <div className="absolute bottom-1 left-2 text-sm text-muted-foreground">{language === 'zh' ? '基线:70dB' : 'Baseline:70dB'}</div>
-                      </div>
+                      <div className="text-xs text-green-400">{language === 'zh' ? '预期时间已告知' : 'Expected time notified'}</div>
                     </div>
 
-                    {/* 能耗趋势图 */}
-                    <div className="space-y-2">
-                      <div className="text-sm text-muted-foreground flex justify-between">
-                        <span>{language === 'zh' ? '功率 (kW)' : 'Power (kW)'}</span>
-                        <span className="text-yellow-400 font-semibold">{language === 'zh' ? '↑ +25% 波动' : '↑ +25% Fluctuation'}</span>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white font-semibold">✓</div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-foreground">{language === 'zh' ? '步骤4: 系统自动配置' : 'Step 4: Automated System Configuration'}</div>
+                        <div className="text-xs text-muted-foreground">{language === 'zh' ? '耗时: 2分钟 | 状态: 已完成 | 5个模块权限已配置' : 'Duration: 2min | Status: Completed | 5 module permissions configured'}</div>
                       </div>
-                      <div className="h-24 bg-black/20 rounded relative overflow-hidden">
-                        <svg width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="none">
-                          <line x1="0" y1="60" x2="200" y2="60" stroke="rgb(75, 85, 99)" strokeWidth="1" strokeDasharray="3,3" />
-                          <polyline
-                            points="0,62 20,58 40,65 60,55 80,68 100,52 120,70 140,48 160,72 180,45 200,75"
-                            fill="none"
-                            stroke="rgb(59, 130, 246)"
-                            strokeWidth="2"
-                            className="animate-pulse"
-                          />
-                        </svg>
-                        <div className="absolute bottom-1 right-2 text-sm text-blue-400">15.6kW</div>
-                        <div className="absolute bottom-1 left-2 text-sm text-muted-foreground">{language === 'zh' ? '基线:12.5kW' : 'Baseline:12.5kW'}</div>
-                      </div>
+                      <div className="text-xs text-green-400">{language === 'zh' ? '客户收到开通邮件' : 'Customer received activation email'}</div>
                     </div>
                   </div>
 
-                  {/* 趋势说明 */}
-                  <div className="mt-3 text-sm text-muted-foreground bg-black/20 rounded p-2">
-                    <div className="font-semibold text-yellow-400 mb-1">{language === 'zh' ? '⚠️ 异常趋势分析:' : '⚠️ Anomaly Trend Analysis:'}</div>
+                  <div className="bg-black/20 rounded p-3 text-sm text-muted-foreground">
+                    <div className="font-semibold text-green-400 mb-1">{language === 'zh' ? '🎯 客户痛点解决:' : '🎯 Customer Pain Points Solved:'}</div>
                     <div className="space-y-1">
-                      <div>• <span className="text-red-400">{language === 'zh' ? '温度持续升高' : 'Temperature Rising'}</span> - {language === 'zh' ? '从76°C升至88°C，表明轴承摩擦加剧' : '76°C to 88°C, indicating increased bearing friction'}</div>
-                      <div>• <span className="text-orange-400">{language === 'zh' ? '振动剧烈波动' : 'Severe Vibration'}</span> - {language === 'zh' ? '频率从4.2Hz激增至5.8Hz，疑似轴承磨损' : 'Frequency surged from 4.2Hz to 5.8Hz, suspected bearing wear'}</div>
-                      <div>• <span className="text-yellow-400">{language === 'zh' ? '噪音显著增大' : 'Noise Significantly Increased'}</span> - {language === 'zh' ? '从70dB升至85dB，出现高频异响' : '70dB to 85dB, high-frequency abnormal sound detected'}</div>
-                      <div>• <span className="text-blue-400">{language === 'zh' ? '功率不稳定' : 'Unstable Power'}</span> - {language === 'zh' ? '波动范围扩大25%，能耗异常' : 'Fluctuation range expanded by 25%, abnormal energy consumption'}</div>
+                      <div>• <span className="text-green-400">{language === 'zh' ? '告别黑箱' : 'No More Black Box'}</span> - {language === 'zh' ? '客户全程可见4步进度，实时收到SMS/邮件通知' : 'Customer sees all 4 steps in real-time via SMS/email notifications'}</div>
+                      <div>• <span className="text-green-400">{language === 'zh' ? '预期明确' : 'Clear Expectations'}</span> - {language === 'zh' ? 'AI提前告知开通时间（2024-12-01 14:00），不再焦虑等待' : 'AI pre-notifies activation time (2024-12-01 14:00), no more anxious waiting'}</div>
+                      <div>• <span className="text-green-400">{language === 'zh' ? '一次说清' : 'One-time Clarity'}</span> - {language === 'zh' ? 'AI第一步生成完整资料清单，避免反复补交' : 'AI generates complete doc checklist in Step 1, avoids repeated submissions'}</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      <span className="text-red-400 font-semibold">{language === 'zh' ? '⚠️ 紧急预警: 3号注塑机' : '⚠️ Emergency Alert: Injection Machine #3'}</span>
-                    </div>
+                {/* 内部效率提升: 跨系统自动协同 */}
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Activity className="w-5 h-5 text-blue-400" />
+                    <span className="text-sm font-semibold text-blue-400">
+                      {language === 'zh' ? '⚡ 内部效率提升：跨系统自动协同编排' : '⚡ Internal Efficiency: Cross-System Auto-Orchestration'}
+                    </span>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-black/20 rounded p-3">
-                        <div className="text-red-400 font-semibold mb-1">{language === 'zh' ? '🔧 异常定位' : '🔧 Fault Location'}</div>
-                        <div className="text-sm text-muted-foreground">
-                          • {language === 'zh' ? '异常部件: 主轴承系统' : 'Faulty Component: Main Bearing System'}<br/>
-                          • {language === 'zh' ? '故障类型: 轴承磨损' : 'Fault Type: Bearing Wear'}<br/>
-                          • {language === 'zh' ? '影响范围: 核心动力' : 'Impact Scope: Core Power'}<br/>
-                          • {language === 'zh' ? '紧急程度: 高' : 'Urgency Level: High'}
-                        </div>
-                      </div>
-                      <div className="bg-black/20 rounded p-3">
-                        <div className="text-yellow-400 font-semibold mb-1">{language === 'zh' ? '📊 故障预测' : '📊 Fault Prediction'}</div>
-                        <div className="text-sm text-muted-foreground">
-                          • {language === 'zh' ? '故障概率: 85%' : 'Failure Probability: 85%'}<br/>
-                          • {language === 'zh' ? '预测时间: 48小时内' : 'Predicted Time: Within 48 hours'}<br/>
-                          • {language === 'zh' ? '剩余寿命: ~120小时' : 'Remaining Useful Life: ~120 hours'}<br/>
-                          • {language === 'zh' ? '置信度: 92%' : 'Confidence: 92%'}
-                        </div>
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="bg-black/20 rounded p-3">
+                      <div className="text-blue-400 font-semibold mb-2 text-sm">{language === 'zh' ? '🔗 系统自动打通 (4个)' : '🔗 Systems Auto-Integrated (4)'}</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• {language === 'zh' ? 'CRM客户系统 → 自动查询账号状态' : 'CRM System → Auto query account status'}</div>
+                        <div>• {language === 'zh' ? '合同管理系统 → 自动验证合同' : 'Contract System → Auto verify contract'}</div>
+                        <div>• {language === 'zh' ? 'HR排班系统 → 自动协调时间' : 'HR Scheduling → Auto coordinate time'}</div>
+                        <div>• {language === 'zh' ? '技术配置系统 → 自动授权' : 'Tech Config → Auto authorization'}</div>
                       </div>
                     </div>
 
-                    <div className="bg-green-500/10 rounded p-3">
-                      <div className="text-base text-green-400 font-semibold mb-1">{language === 'zh' ? '✅ 处理建议' : '✅ Recommended Actions'}</div>
-                      <div className="text-sm text-muted-foreground">
-                        • {language === 'zh' ? '建议: 立即停机检修，更换主轴承组件' : 'Recommendation: Immediate shutdown for maintenance, replace main bearing assembly'}<br/>
-                        • {language === 'zh' ? '维护工单: 已生成 #WO-2024-0315' : 'Work Order: Generated #WO-2024-0315'}<br/>
-                        • {language === 'zh' ? '预计停机时间: 4-6小时' : 'Expected Downtime: 4-6 hours'}<br/>
-                        • {language === 'zh' ? '备件准备: 轴承SKF-6309 × 2 (库存充足)' : 'Spare Parts: Bearing SKF-6309 × 2 (In Stock)'}
+                    <div className="bg-black/20 rounded p-3">
+                      <div className="text-yellow-400 font-semibold mb-2 text-sm">{language === 'zh' ? '🤖 机械劳动自动化' : '🤖 Manual Work Automated'}</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• {language === 'zh' ? 'OCR自动识别3份文档（100%准确）' : 'OCR auto-recognizes 3 docs (100% accuracy)'}</div>
+                        <div>• {language === 'zh' ? '合规性自动校验（0人工检查）' : 'Compliance auto-verified (0 manual checks)'}</div>
+                        <div>• {language === 'zh' ? '排期冲突自动检测和优化' : 'Schedule conflicts auto-detected/optimized'}</div>
+                        <div>• {language === 'zh' ? '5个团队自动通知（邮件已发）' : '5 teams auto-notified (emails sent)'}</div>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/20 rounded p-3 text-sm text-muted-foreground">
+                    <div className="font-semibold text-blue-400 mb-1">{language === 'zh' ? '💡 运营团队痛点解决:' : '💡 Operations Team Pain Points Solved:'}</div>
+                    <div className="space-y-1">
+                      <div>• <span className="text-blue-400">{language === 'zh' ? '告别人肉编排' : 'No More Manual Orchestration'}</span> - {language === 'zh' ? '4个系统AI自动打通，无需Excel/微信群协调' : '4 systems AI auto-integrated, no Excel/WeChat coordination needed'}</div>
+                      <div>• <span className="text-blue-400">{language === 'zh' ? '重复劳动消失' : 'Repetitive Work Eliminated'}</span> - {language === 'zh' ? 'OCR+自动校验替代人工，释放80%时间处理异常' : 'OCR+auto-check replaces manual work, frees 80% time for exceptions'}</div>
+                      <div>• <span className="text-blue-400">{language === 'zh' ? '统一视图可见' : 'Unified View Available'}</span> - {language === 'zh' ? '管理者可看到"卡在哪、谁在等"，追责清晰' : 'Managers see "where stuck, who waiting", clear accountability'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 管理层价值: 数据驱动决策 */}
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <BarChart className="w-5 h-5 text-purple-400" />
+                    <span className="text-sm font-semibold text-purple-400">
+                      {language === 'zh' ? '📊 管理层价值：数据驱动流程优化' : '📊 Management Value: Data-Driven Process Optimization'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 mb-3">
+                    <div className="bg-black/20 rounded p-3 text-center">
+                      <div className="text-2xl font-bold text-green-400">94%</div>
+                      <div className="text-xs text-muted-foreground mt-1">{language === 'zh' ? '开通周期缩短' : 'Cycle Time Reduced'}</div>
+                      <div className="text-xs text-green-400 mt-1">{language === 'zh' ? '3天 → 4小时' : '3 days → 4 hours'}</div>
+                    </div>
+
+                    <div className="bg-black/20 rounded p-3 text-center">
+                      <div className="text-2xl font-bold text-blue-400">100%</div>
+                      <div className="text-xs text-muted-foreground mt-1">{language === 'zh' ? '流程数据可见' : 'Process Data Visible'}</div>
+                      <div className="text-xs text-blue-400 mt-1">{language === 'zh' ? '每步耗时+成功率' : 'Each step time+success rate'}</div>
+                    </div>
+
+                    <div className="bg-black/20 rounded p-3 text-center">
+                      <div className="text-2xl font-bold text-yellow-400">0</div>
+                      <div className="text-xs text-muted-foreground mt-1">{language === 'zh' ? '人为错误次数' : 'Human Errors'}</div>
+                      <div className="text-xs text-yellow-400 mt-1">{language === 'zh' ? '自动化消除风险' : 'Automation eliminates risk'}</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/20 rounded p-3 text-sm text-muted-foreground">
+                    <div className="font-semibold text-purple-400 mb-2">{language === 'zh' ? '📈 本次开通的精准数据链路:' : '📈 Precise Data Trail for This Activation:'}</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>• {language === 'zh' ? '步骤1耗时: 2分钟（历史平均: 45分钟）' : 'Step 1 time: 2min (avg: 45min)'}</div>
+                      <div>• {language === 'zh' ? '步骤2耗时: 3分钟（历史平均: 2小时）' : 'Step 2 time: 3min (avg: 2hrs)'}</div>
+                      <div>• {language === 'zh' ? '步骤3耗时: 1分钟（历史平均: 1天）' : 'Step 3 time: 1min (avg: 1 day)'}</div>
+                      <div>• {language === 'zh' ? '步骤4耗时: 2分钟（历史平均: 30分钟）' : 'Step 4 time: 2min (avg: 30min)'}</div>
+                      <div>• {language === 'zh' ? '瓶颈识别: 步骤3（排期）原为最大痛点' : 'Bottleneck: Step 3 (scheduling) was biggest pain'}</div>
+                      <div>• {language === 'zh' ? '优化建议: 可进一步简化步骤2文档要求' : 'Optimization: Can further simplify Step 2 doc requirements'}</div>
                     </div>
                   </div>
                 </div>
@@ -948,52 +1002,171 @@ export const CapabilityResultDisplay = ({ scenario, onContinue }: ResultDisplayP
             {scenario.id === 'scenario-06' && (
               <div className="space-y-4 mb-6">
                 <h3 className="text-lg font-semibold text-foreground mb-3">
-                  {t('capability.result.anomalyTransactionDetails')}
+                  {language === 'zh' ? '📊 账单调整执行详情' : '📊 Billing Adjustment Execution Details'}
                 </h3>
 
-                {/* High Risk Transactions */}
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                {/* 可视化账单对比 */}
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-red-400 font-semibold">{language === 'zh' ? '发现12笔可疑交易 (风险等级: 高)' : '12 Suspicious Transactions Detected (Risk Level: High)'}</span>
+                    <BarChart className="w-5 h-5 text-blue-400" />
+                    <span className="text-sm font-semibold text-blue-400">
+                      {language === 'zh' ? '💰 可视化账单对比分析' : '💰 Visual Billing Comparison Analysis'}
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-black/20 rounded p-3">
-                      <div className="text-red-400 font-semibold mb-1">{language === 'zh' ? '💰 异常金额 (2笔)' : '💰 Abnormal Amounts (2)'}</div>
-                      <div className="text-sm text-muted-foreground">
-                        • {language === 'zh' ? '交易A: ¥125万 (超限额3倍)' : 'Transaction A: ¥1.25M (3× limit)'}<br/>
-                        • {language === 'zh' ? '交易B: ¥98万 (超限额2.4倍)' : 'Transaction B: ¥980K (2.4× limit)'}<br/>
-                        • {language === 'zh' ? '总计: ¥223万' : 'Total: ¥2.23M'}
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    {/* 原账单 */}
+                    <div className="bg-black/20 rounded p-4">
+                      <div className="text-red-400 font-semibold mb-3 text-center">{language === 'zh' ? '❌ 原账单（客户质疑）' : '❌ Original Bill (Disputed)'}</div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">{language === 'zh' ? '基础服务费' : 'Base Service Fee'}</span>
+                          <span className="text-foreground">¥8,000</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">{language === 'zh' ? '增值服务费' : 'Value-added Fee'}</span>
+                          <span className="text-red-400 font-semibold">¥3,200</span>
+                        </div>
+                        <div className="border-t border-border pt-2 flex justify-between font-semibold">
+                          <span>{language === 'zh' ? '合计' : 'Total'}</span>
+                          <span className="text-red-400">¥11,200</span>
+                        </div>
+                        <div className="bg-red-500/20 rounded px-2 py-1 text-xs text-red-400 text-center mt-2">
+                          {language === 'zh' ? '客户预期: ¥8,400（差异¥2,800）' : 'Customer Expected: ¥8,400 (Diff ¥2,800)'}
+                        </div>
                       </div>
                     </div>
-                    <div className="bg-black/20 rounded p-3">
-                      <div className="text-yellow-400 font-semibold mb-1">{language === 'zh' ? '🔄 频繁小额 (5笔)' : '🔄 Frequent Small Amounts (5)'}</div>
-                      <div className="text-sm text-muted-foreground">
-                        • {language === 'zh' ? '24小时内5笔相同金额' : '5 identical amounts within 24 hours'}<br/>
-                        • {language === 'zh' ? '单笔: ¥9,999' : 'Per transaction: ¥9,999'}<br/>
-                        • {language === 'zh' ? '总计: ¥5万' : 'Total: ¥50K'}
+
+                    {/* 调整后账单 */}
+                    <div className="bg-black/20 rounded p-4 border-2 border-green-500/50">
+                      <div className="text-green-400 font-semibold mb-3 text-center">{language === 'zh' ? '✅ 调整后账单（AI建议）' : '✅ Adjusted Bill (AI Recommended)'}</div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">{language === 'zh' ? '基础服务费' : 'Base Service Fee'}</span>
+                          <span className="text-foreground">¥8,000</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">{language === 'zh' ? '增值服务费（50%）' : 'Value-added Fee (50%)'}</span>
+                          <span className="text-green-400 font-semibold">¥1,800</span>
+                        </div>
+                        <div className="border-t border-border pt-2 flex justify-between font-semibold">
+                          <span>{language === 'zh' ? '合计' : 'Total'}</span>
+                          <span className="text-green-400">¥9,800</span>
+                        </div>
+                        <div className="bg-green-500/20 rounded px-2 py-1 text-xs text-green-400 text-center mt-2">
+                          {language === 'zh' ? '退款¥1,400（体现企业诚意）' : 'Refund ¥1,400 (Shows Goodwill)'}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-orange-500/10 rounded p-3 mt-3">
-                    <div className="text-base text-orange-400 font-semibold mb-1">{language === 'zh' ? '⚠️ 重复支付 (3笔)' : '⚠️ Duplicate Payments (3)'}</div>
-                    <div className="text-sm text-muted-foreground">
-                      • {language === 'zh' ? '相同收款方，相同金额，10分钟内重复支付' : 'Same payee, same amount, repeated within 10 minutes'}<br/>
-                      • {language === 'zh' ? '单笔: ¥22万 × 3 = ¥66万' : 'Per transaction: ¥220K × 3 = ¥660K'}<br/>
-                      • {language === 'zh' ? '疑似系统故障或操作失误' : 'Suspected system error or operational mistake'}
+                  <div className="bg-black/20 rounded p-3 text-sm text-muted-foreground">
+                    <div className="font-semibold text-blue-400 mb-1">{language === 'zh' ? '🎯 差异分析:' : '🎯 Variance Analysis:'}</div>
+                    <div className="space-y-1">
+                      <div>• <span className="text-blue-400">{language === 'zh' ? '根本原因' : 'Root Cause'}</span> - {language === 'zh' ? '销售签约时未充分说明增值服务独立计费规则' : 'Sales did not fully explain value-added service billing rules during signing'}</div>
+                      <div>• <span className="text-blue-400">{language === 'zh' ? '调整逻辑' : 'Adjustment Logic'}</span> - {language === 'zh' ? '服务已提供（47次使用），部分退款兼顾客户体验与财务原则' : 'Service provided (47 uses), partial refund balances customer experience and financial principles'}</div>
+                      <div>• <span className="text-blue-400">{language === 'zh' ? '预期效果' : 'Expected Outcome'}</span> - {language === 'zh' ? '客户满意度从35%提升至80%，避免升级投诉' : 'Customer satisfaction from 35% to 80%, avoid escalation'}</div>
                     </div>
                   </div>
                 </div>
 
-                {/* Summary */}
-                <div className="bg-primary/10 border border-primary/30 rounded-lg p-4">
-                  <div className="text-base font-semibold text-primary mb-2">{language === 'zh' ? '综合评估' : 'Overall Assessment'}</div>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <div>• {language === 'zh' ? '异常交易总额:' : 'Total Anomaly Amount:'} <span className="text-red-400 font-semibold">{language === 'zh' ? '¥285万' : '¥2.85M'}</span></div>
-                    <div>• {language === 'zh' ? '风险等级:' : 'Risk Level:'} <span className="text-red-400 font-semibold">{language === 'zh' ? '高' : 'High'}</span></div>
-                    <div>• {language === 'zh' ? '建议:' : 'Recommendation:'} <span className="text-yellow-400">{language === 'zh' ? '立即启动审计流程，冻结相关账户' : 'Initiate audit process immediately, freeze related accounts'}</span></div>
+                {/* 智能分流逻辑说明 */}
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Activity className="w-5 h-5 text-yellow-400" />
+                    <span className="text-sm font-semibold text-yellow-400">
+                      {language === 'zh' ? '🤖 智能分流决策逻辑' : '🤖 Intelligent Routing Decision Logic'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="bg-black/20 rounded p-3">
+                      <div className="text-sm font-semibold text-foreground mb-2">{language === 'zh' ? '本案件路由判定:' : 'Case Routing Determination:'}</div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="bg-red-500/20 rounded p-2">
+                          <div className="text-red-400 font-semibold mb-1">{language === 'zh' ? '❌ 金额阈值' : '❌ Amount Threshold'}</div>
+                          <div className="text-muted-foreground">{language === 'zh' ? '¥1,400 > ¥1,000' : '¥1,400 > ¥1,000'}</div>
+                          <div className="text-red-400 text-xs">{language === 'zh' ? '需人工审批' : 'Requires approval'}</div>
+                        </div>
+                        <div className="bg-green-500/20 rounded p-2">
+                          <div className="text-green-400 font-semibold mb-1">{language === 'zh' ? '✅ 根因明确' : '✅ Clear Root Cause'}</div>
+                          <div className="text-muted-foreground">{language === 'zh' ? '销售流程疏漏' : 'Sales oversight'}</div>
+                          <div className="text-green-400 text-xs">{language === 'zh' ? 'AI准确定位' : 'AI accurately located'}</div>
+                        </div>
+                        <div className="bg-yellow-500/20 rounded p-2">
+                          <div className="text-yellow-400 font-semibold mb-1">{language === 'zh' ? '⚠️ 最终判定' : '⚠️ Final Decision'}</div>
+                          <div className="text-muted-foreground">{language === 'zh' ? '触发人工审批' : 'Trigger manual approval'}</div>
+                          <div className="text-yellow-400 text-xs">{language === 'zh' ? '财务主管介入' : 'Supervisor involved'}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-black/20 rounded p-3 text-sm text-muted-foreground">
+                      <div className="font-semibold text-yellow-400 mb-2">{language === 'zh' ? '💡 智能分流规则体系（未来完整版）:' : '💡 Intelligent Routing Rules (Full Version):'}</div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>• {language === 'zh' ? '金额≤¥500 + 根因明确 → 自动批准' : 'Amount ≤¥500 + clear cause → Auto-approve'}</div>
+                        <div>• {language === 'zh' ? '¥500 < 金额 ≤¥1000 → 主管抽检' : '¥500 < amount ≤¥1000 → Supervisor spot-check'}</div>
+                        <div>• {language === 'zh' ? '金额 > ¥1000 → 必须审批（本案）' : 'Amount > ¥1000 → Approval required (this case)'}</div>
+                        <div>• {language === 'zh' ? '根因不明 → 人工介入调查' : 'Unclear cause → Manual investigation'}</div>
+                        <div>• {language === 'zh' ? 'VIP客户 → 优先处理通道' : 'VIP customer → Priority processing'}</div>
+                        <div>• {language === 'zh' ? '重复投诉 → 升级处理流程' : 'Repeat complaint → Escalation process'}</div>
+                      </div>
+                      <div className="mt-2 text-yellow-400">
+                        {language === 'zh' ? '🎯 预期效果: 70%案件AI自动处理，30%高价值案件人工介入' : '🎯 Expected: 70% cases AI auto-handled, 30% high-value cases manual intervention'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 财务团队痛点解决 */}
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <CheckCircle className="w-5 h-5 text-purple-400" />
+                    <span className="text-sm font-semibold text-purple-400">
+                      {language === 'zh' ? '⚡ 财务团队痛点解决方案' : '⚡ Finance Team Pain Points Solved'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-black/20 rounded p-3">
+                      <div className="text-purple-400 font-semibold mb-2 text-sm">{language === 'zh' ? '📧 邮件驱动自动化' : '📧 Email-Driven Automation'}</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• {language === 'zh' ? 'AI自动解析邮件内容（100%准确）' : 'AI auto-parses email content (100% accuracy)'}</div>
+                        <div>• {language === 'zh' ? '自动提取账单号、时间段、问题类型' : 'Auto-extracts bill#, period, issue type'}</div>
+                        <div>• {language === 'zh' ? '无需人工"啃"非结构化请求' : 'No manual parsing of unstructured requests'}</div>
+                        <div className="text-purple-400">{language === 'zh' ? '→ 节省2小时/案件' : '→ Saves 2 hours/case'}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-black/20 rounded p-3">
+                      <div className="text-blue-400 font-semibold mb-2 text-sm">{language === 'zh' ? '🔗 多系统自动对账' : '🔗 Multi-System Auto Reconciliation'}</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• {language === 'zh' ? '计费系统 + CRM + 支付记录自动调取' : 'Billing + CRM + Payment auto-retrieved'}</div>
+                        <div>• {language === 'zh' ? 'AI自动对比差异、定位根因' : 'AI auto-compares variances, locates cause'}</div>
+                        <div>• {language === 'zh' ? '无需在多个系统间来回切换' : 'No need to switch between systems'}</div>
+                        <div className="text-blue-400">{language === 'zh' ? '→ 体力活彻底消失' : '→ Manual work eliminated'}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-black/20 rounded p-3">
+                      <div className="text-green-400 font-semibold mb-2 text-sm">{language === 'zh' ? '📋 审批材料自动生成' : '📋 Approval Materials Auto-Generated'}</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• {language === 'zh' ? 'AI自动整理：诉求+数据+分析+政策' : 'AI auto-organizes: request+data+analysis+policy'}</div>
+                        <div>• {language === 'zh' ? '包含风险评估、调整建议、执行步骤' : 'Includes risk assessment, recommendations, steps'}</div>
+                        <div>• {language === 'zh' ? '财务主管收到结构化Brief' : 'Supervisor receives structured brief'}</div>
+                        <div className="text-green-400">{language === 'zh' ? '→ 高金额案件准备时间 3小时 → 5分钟' : '→ High-value case prep: 3hrs → 5min'}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-black/20 rounded p-3">
+                      <div className="text-yellow-400 font-semibold mb-2 text-sm">{language === 'zh' ? '⚖️ 风控与效率兼顾' : '⚖️ Risk Control & Efficiency Balanced'}</div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <div>• {language === 'zh' ? '简单/安全案件AI自动处理' : 'Simple/safe cases AI auto-handles'}</div>
+                        <div>• {language === 'zh' ? '复杂/高风险案件自动浮到人手里' : 'Complex/risky cases auto-escalate to human'}</div>
+                        <div>• {language === 'zh' ? '管理层聚焦战略性决策' : 'Management focuses on strategic decisions'}</div>
+                        <div className="text-yellow-400">{language === 'zh' ? '→ 审批流程既安全又高效' : '→ Approval process both safe & efficient'}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

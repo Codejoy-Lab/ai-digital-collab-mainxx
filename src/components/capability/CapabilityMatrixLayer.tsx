@@ -248,6 +248,115 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     ]
   };
 
+  // 场景06的决策点配置 - 账单调整审批
+  const scenario06DecisionCn: DecisionPoint = {
+    id: 'decision-billing-review',
+    title: '账单调整方案审批',
+    description: 'AI已完成账单对账分析并生成调整建议，请您审核是否批准该方案',
+    keyInfo: [
+      { label: '账单编号', value: 'BILL-2024-Q3-8823', color: 'blue' },
+      { label: '争议金额', value: '¥2,800', color: 'yellow' },
+      { label: '问题类型', value: '未说明增值服务计费', color: 'yellow' },
+      { label: 'AI建议', value: '部分退款¥1,400', color: 'green' }
+    ],
+    riskDetails: [
+      {
+        title: 'AI分析：客户投诉内容',
+        content: '客户通过邮件反馈2024年Q3季度服务费账单比预期高出¥2,800。经核查，基础服务费¥8,000符合合同约定，额外增值服务费¥3,200为系统自动计费，但销售人员在签约时未向客户明确说明增值服务的计费规则，导致客户预期差异。',
+        severity: 'medium'
+      },
+      {
+        title: 'AI分析：根因与责任',
+        content: '根因定位：销售流程疏漏。销售人员在签约时重点介绍了增值服务功能，但未充分说明其独立计费逻辑。虽然合同条款中有相关说明，但客户理解存在偏差。责任方：销售部门（流程不完善）。',
+        severity: 'low'
+      },
+      {
+        title: 'AI分析：服务实际提供情况',
+        content: '技术系统记录显示：客户在Q3季度确实使用了增值服务功能共计47次，包括高级数据分析12次、定制报表生成18次、API调用加速17次。服务已实际提供且符合计费标准。',
+        severity: 'low'
+      }
+    ],
+    aiRecommendations: [
+      {
+        title: '调整方案建议',
+        content: '【方案】增值服务费部分退款¥1,400（50%）→【理由】①服务已实际提供，全额退款不合理；②销售说明不充分导致客户预期差异，企业应承担部分责任；③部分退款既体现诚意，又维护计费原则 →【后续】发送详细计费说明邮件 + 销售流程改进通知 + 客户关怀礼包（200积分）'
+      },
+      {
+        title: '风险评估',
+        content: '【财务风险】低。退款金额¥1,400对公司影响极小。【客户关系风险】中。若不处理，客户满意度将持续下降，可能影响续约（合同价值¥3.2万/年）。【声誉风险】低。个案处理，不涉及系统性问题。【建议】批准部分退款方案，性价比最优。'
+      }
+    ],
+    question: '请审核AI生成的账单调整方案',
+    options: [
+      {
+        id: 'option-approve',
+        label: '✅ 批准调整方案',
+        description: '同意AI建议，执行部分退款¥1,400 + 客户解释',
+        color: 'green'
+      },
+      {
+        id: 'option-reject',
+        label: '❌ 拒绝调整，维持原账单',
+        description: '服务已提供且计费合理，不予退款，发送详细说明',
+        color: 'red'
+      }
+    ]
+  };
+
+  const scenario06DecisionEn: DecisionPoint = {
+    id: 'decision-billing-review',
+    title: 'Billing Adjustment Approval',
+    description: 'AI has completed billing reconciliation analysis and generated adjustment recommendation. Please review and approve the plan.',
+    keyInfo: [
+      { label: 'Bill Number', value: 'BILL-2024-Q3-8823', color: 'blue' },
+      { label: 'Disputed Amount', value: '¥2,800', color: 'yellow' },
+      { label: 'Issue Type', value: 'Undisclosed value-added charges', color: 'yellow' },
+      { label: 'AI Recommendation', value: 'Partial refund ¥1,400', color: 'green' }
+    ],
+    riskDetails: [
+      {
+        title: 'AI Analysis: Customer Complaint',
+        content: 'Customer emailed feedback that 2024 Q3 quarterly service fee bill is ¥2,800 higher than expected. Upon verification, base service fee ¥8,000 matches contract, additional value-added service fee ¥3,200 was auto-billed by system, but sales staff did not clearly explain value-added service billing rules during contract signing, causing customer expectation gap.',
+        severity: 'medium'
+      },
+      {
+        title: 'AI Analysis: Root Cause & Responsibility',
+        content: 'Root cause: Sales process oversight. Sales staff emphasized value-added service features during signing but did not fully explain independent billing logic. Although contract terms include relevant clauses, customer understanding had deviation. Responsible party: Sales department (incomplete process).',
+        severity: 'low'
+      },
+      {
+        title: 'AI Analysis: Actual Service Provision',
+        content: 'Technical system records show: Customer actually used value-added service features 47 times in Q3, including advanced data analysis 12 times, custom report generation 18 times, API call acceleration 17 times. Services were actually provided and meet billing standards.',
+        severity: 'low'
+      }
+    ],
+    aiRecommendations: [
+      {
+        title: 'Adjustment Plan Recommendation',
+        content: '【Plan】Value-added service partial refund ¥1,400 (50%) → 【Rationale】①Services were actually provided, full refund unreasonable; ②Sales explanation insufficient caused customer expectation gap, company should bear partial responsibility; ③Partial refund shows goodwill while maintaining billing principles → 【Follow-up】Send detailed billing explanation email + Sales process improvement notification + Customer care package (200 points)'
+      },
+      {
+        title: 'Risk Assessment',
+        content: '【Financial Risk】Low. Refund amount ¥1,400 has minimal company impact. 【Customer Relationship Risk】Medium. If unhandled, customer satisfaction will continue declining, may affect renewal (contract value ¥32K/year). 【Reputation Risk】Low. Individual case handling, no systemic issues. 【Recommendation】Approve partial refund plan, optimal cost-benefit.'
+      }
+    ],
+    question: 'Please review AI-generated billing adjustment plan',
+    options: [
+      {
+        id: 'option-approve',
+        label: '✅ Approve Adjustment',
+        description: 'Agree with AI recommendation, execute partial refund ¥1,400 + customer explanation',
+        color: 'green'
+      },
+      {
+        id: 'option-reject',
+        label: '❌ Reject, Maintain Original Bill',
+        description: 'Services provided and billing reasonable, no refund, send detailed explanation',
+        color: 'red'
+      }
+    ]
+  };
+
   // Scenario cards with workflow definitions
   const taskCards: ScenarioCard[] = [
     {
@@ -282,17 +391,17 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     },
     {
       id: 'scenario-03',
-      title: '制造设备智能监控预警',
-      titleEn: 'Manufacturing Equipment Intelligent Monitoring',
-      description: '传感器数据采集 → AI异常检测 → 故障预测 → 预警通知',
-      descriptionEn: 'Sensor Data Collection → AI Anomaly Detection → Failure Prediction → Alert Notification',
-      icon: 'Activity',
-      requiredModules: ['tech-01', 'tech-02', 'tech-10', 'tech-04'],
+      title: '智能服务开通审批',
+      titleEn: 'Smart Service Onboarding',
+      description: '资格核查 → 文档解析 → 资源排期 → 系统配置 → 运营抽检',
+      descriptionEn: 'Eligibility Check → Document Analysis → Resource Scheduling → System Setup → Operations Review',
+      icon: 'Zap',
+      requiredModules: ['product-02', 'legal-01', 'hr-03', 'tech-08'],
       workflow: [
-        { id: 'w1', agentId: 'tech-01', agentName: '数据采集系统', action: '设备传感器数据采集', actionEn: 'Sensor Data Collection', duration: 3000, details: ['温度数据采集', '振动频率监测', '电流功率读取', '运行状态记录'], detailsEn: ['Temperature data collection', 'Vibration frequency monitoring', 'Current power reading', 'Operation status recording'] },
-        { id: 'w2', agentId: 'tech-02', agentName: '异常检测引擎', action: 'AI异常模式识别', actionEn: 'AI Anomaly Detection', duration: 5000, details: ['机器学习模型分析', '识别异常波动', '对比历史基线', '定位异常参数'], detailsEn: ['Machine learning model analysis', 'Identify abnormal fluctuations', 'Compare historical baseline', 'Locate abnormal parameters'] },
-        { id: 'w3', agentId: 'tech-10', agentName: '预测模型系统', action: '故障预测与剩余寿命评估', actionEn: 'Failure Prediction & RUL Assessment', duration: 4500, details: ['预测故障时间', '计算剩余寿命', '评估维修紧急度', '生成维护建议'], detailsEn: ['Predict failure time', 'Calculate remaining useful life', 'Assess maintenance urgency', 'Generate maintenance recommendations'] },
-        { id: 'w4', agentId: 'tech-04', agentName: '设备监控系统', action: '智能预警通知', actionEn: 'Intelligent Alert Notification', duration: 2000, details: ['发送预警通知', '推送维修工单', '更新设备档案', '记录预警事件'], detailsEn: ['Send alert notification', 'Push maintenance work order', 'Update equipment records', 'Log alert events'] }
+        { id: 'w1', agentId: 'product-02', agentName: '用户洞察系统', action: '账户资格与合同核查', actionEn: 'Account Eligibility & Contract Verification', duration: 3000, details: ['查询客户账号状态', '检查合同有效期', '验证服务套餐权限', '确认前置条件完成'], detailsEn: ['Query customer account status', 'Check contract validity period', 'Verify service package permissions', 'Confirm prerequisites completed'] },
+        { id: 'w2', agentId: 'legal-01', agentName: '法律文本分析', action: '资料收集与文档智能解析', actionEn: 'Document Collection & Intelligent Parsing', duration: 4500, details: ['OCR识别上传文档', '提取关键字段信息', '验证信息完整性', '检查有效期与授权'], detailsEn: ['OCR recognition of uploaded documents', 'Extract key field information', 'Verify information completeness', 'Check validity period & authorization'] },
+        { id: 'w3', agentId: 'hr-03', agentName: '排班管理系统', action: '资源排期与时间协调', actionEn: 'Resource Scheduling & Time Coordination', duration: 3500, details: ['检查资源可用性', '分析时间窗口冲突', '计算最优时段', '确认开通时间'], detailsEn: ['Check resource availability', 'Analyze time window conflicts', 'Calculate optimal time slot', 'Confirm activation time'] },
+        { id: 'w4', agentId: 'tech-08', agentName: '系统集成引擎', action: '后台系统配置与开通', actionEn: 'Backend System Configuration & Activation', duration: 4000, details: ['创建服务开通任务', '配置系统访问权限', '同步相关团队通知', '生成开通摘要报告'], detailsEn: ['Create service activation task', 'Configure system access permissions', 'Sync team notifications', 'Generate activation summary report'] }
       ]
     },
     {
@@ -327,17 +436,17 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
     },
     {
       id: 'scenario-06',
-      title: '财务异常智能检测',
-      titleEn: 'Financial Anomaly Intelligent Detection',
-      description: '数据采集 → 异常检测 → 风险评估 → 审计报告',
-      descriptionEn: 'Data Collection → Anomaly Detection → Risk Assessment → Audit Report',
-      icon: 'Target',
-      requiredModules: ['finance-01', 'finance-02', 'tech-02', 'finance-06'],
+      title: '智能账单调整审批',
+      titleEn: 'Smart Billing Adjustment Approval',
+      description: '邮件解析 → 对账分析 → AI方案生成 → 财务审批 → 自动执行',
+      descriptionEn: 'Email Parsing → Reconciliation → AI Plan Generation → Financial Approval → Auto Execution',
+      icon: 'Receipt',
+      requiredModules: ['marketing-04', 'finance-01', 'finance-02', 'marketing-07'],
       workflow: [
-        { id: 'w1', agentId: 'finance-01', agentName: '财务分析引擎', action: '多源财务数据整合', actionEn: 'Multi-source Financial Data Integration', duration: 3500, details: ['ERP数据提取', '银行流水导入', '发票数据采集', '报销单据汇总'], detailsEn: ['ERP data extraction', 'Bank statement import', 'Invoice data collection', 'Expense document aggregation'] },
-        { id: 'w2', agentId: 'tech-02', agentName: '异常检测引擎', action: '异常交易模式识别', actionEn: 'Anomaly Transaction Detection', duration: 5000, details: ['机器学习分析', '识别异常金额', '检测频繁小额', '发现重复支付', '标记可疑账户'], detailsEn: ['Machine learning analysis', 'Identify abnormal amounts', 'Detect frequent small payments', 'Discover duplicate payments', 'Flag suspicious accounts'] },
-        { id: 'w3', agentId: 'finance-02', agentName: '会计核算系统', action: '会计准则符合性检查', actionEn: 'Accounting Standards Compliance', duration: 4000, details: ['科目使用规范检查', '凭证完整性验证', '税务合规分析', '跨期调整识别'], detailsEn: ['Account usage standard check', 'Voucher completeness verification', 'Tax compliance analysis', 'Cross-period adjustment identification'] },
-        { id: 'w4', agentId: 'finance-06', agentName: '审计检查系统', action: '审计风险评估与报告', actionEn: 'Audit Risk Assessment', duration: 4500, details: ['风险等级评估', '异常交易汇总', '生成审计线索', '输出检测报告'], detailsEn: ['Risk level assessment', 'Anomaly transaction summary', 'Generate audit trails', 'Output detection report'] }
+        { id: 'w1', agentId: 'marketing-04', agentName: '客户洞察分析', action: '邮件理解与案件创建', actionEn: 'Email Understanding & Case Creation', duration: 3000, details: ['解析邮件内容', '提取账单号与时间段', '识别问题类型', '创建调整工单'], detailsEn: ['Parse email content', 'Extract bill number & period', 'Identify issue type', 'Create adjustment ticket'] },
+        { id: 'w2', agentId: 'finance-01', agentName: '财务分析引擎', action: '对账与差异分析', actionEn: 'Reconciliation & Variance Analysis', duration: 5000, details: ['调取计费系统数据', '对比客户提供明细', '识别差异项目', '定位差异根因'], detailsEn: ['Retrieve billing system data', 'Compare customer-provided details', 'Identify variance items', 'Locate root cause'] },
+        { id: 'w3', agentId: 'finance-02', agentName: '会计核算系统', action: '调整方案生成与财务审批', actionEn: 'Adjustment Plan Generation & Approval', duration: 8000, details: ['计算调整金额', '生成调整方案', '等待财务审批', '引用相关政策'], detailsEn: ['Calculate adjustment amount', 'Generate adjustment plan', 'Await financial approval', 'Reference relevant policies'] },
+        { id: 'w4', agentId: 'marketing-07', agentName: '客户关系管理', action: '执行调整与客户通知', actionEn: 'Execute Adjustment & Customer Notification', duration: 3000, details: ['录入调整信息', '更新账单状态', '生成回复邮件', '案件归档记录'], detailsEn: ['Record adjustment info', 'Update billing status', 'Generate reply email', 'Archive case record'] }
       ]
     }
   ];
@@ -637,13 +746,40 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                 '综合评级 → B级 (中等风险)'
               ],
 
-              // 场景03: 设备监控预警 - 核心步骤 tech-02
-              'scenario-03-tech-02': [
-                '加载LSTM模型 → 启动分析',
-                '振动数据 → 异常波动+38%',
-                '温度曲线 → 升高+12°C',
-                '噪音频谱 → 高频异响',
-                '定位部件 → 主轴承 (置信度92%)'
+              // 场景03: 智能服务开通 - 步骤1 product-02（资格核查）
+              'scenario-03-product-02': [
+                '🔍 查询客户账号 → ID: CUS-2024-8856',
+                '📋 检查合同状态 → 有效期至 2025.12.31',
+                '✅ 验证套餐权限 → 企业高级版（已激活）',
+                '🎯 前置条件检查 → 付款完成，资料齐全',
+                '✓ 资格审核通过 → 符合开通条件'
+              ],
+
+              // 场景03: 智能服务开通 - 步骤2 legal-01（文档解析）
+              'scenario-03-legal-01': [
+                '🔍 OCR文档识别 → 3份文件',
+                '📄 提取授权信息 → 服务地点：上海浦东新区',
+                '✅ 验证有效期 → 2024.01-2025.12 (覆盖)',
+                '📋 信息完整性 → 100% (姓名/地址/日期齐全)',
+                '✓ 合规性确认 → 通过审查'
+              ],
+
+              // 场景03: 智能服务开通 - 步骤3 hr-03（资源排期）
+              'scenario-03-hr-03': [
+                '📅 检查资源可用性 → 工程师组A可用',
+                '⏰ 分析时间窗口 → 发现2个冲突时段',
+                '🎯 计算最优时间 → 2024-12-01 14:00-16:00',
+                '👥 协调相关团队 → 技术部、运维部已确认',
+                '✓ 排期完成 → 开通时间已锁定'
+              ],
+
+              // 场景03: 智能服务开通 - 步骤4 tech-08（系统配置）
+              'scenario-03-tech-08': [
+                '🔧 创建开通任务 → TASK-SRV-2024-1205',
+                '🔐 配置访问权限 → 5个模块权限已授予',
+                '📧 通知相关团队 → 邮件已发送至技术/销售/客服',
+                '📊 生成摘要报告 → 包含配置详情和时间表',
+                '✓ 系统配置完成 → 等待开通执行'
               ],
 
               // 场景04: 客户投诉分析 - 核心步骤 product-02
@@ -664,13 +800,40 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                 '风险评估 → 中风险'
               ],
 
-              // 场景06: 财务异常检测 - 核心步骤 tech-02
-              'scenario-06-tech-02': [
-                '启动异常检测 → Isolation Forest',
-                '扫描交易记录 → 18,523笔',
-                '识别异常金额 → 超限额2笔',
-                '检测频繁小额 → ¥9,999×5笔',
-                '标记可疑账户 → 异常总额¥285万'
+              // 场景06: 智能账单调整 - 步骤1 marketing-04（邮件理解）
+              'scenario-06-marketing-04': [
+                '📧 解析邮件内容 → 识别为账单投诉类型',
+                '🔍 提取账单号 → BILL-2024-Q3-8823',
+                '📅 识别时间段 → 2024年第三季度',
+                '⚠️ 问题分类 → 费用争议（预期外收费）',
+                '✓ 创建工单 → ADJ-2024-1205-003'
+              ],
+
+              // 场景06: 智能账单调整 - 步骤2 finance-01（对账分析）
+              'scenario-06-finance-01': [
+                '📊 调取账单 → BILL-2024-Q3-8823',
+                '🔍 客户疑问 → "季度服务费比预期高¥2,800"',
+                '📋 系统计费明细 → 基础费¥8,000 + 增值服务¥3,200',
+                '⚠️ 差异识别 → 客户未知增值服务收费',
+                '🎯 根因定位 → 销售未说明增值服务计费规则'
+              ],
+
+              // 场景06: 智能账单调整 - 步骤3 finance-02（方案生成）
+              'scenario-06-finance-02': [
+                '💡 计算调整金额 → 建议退款¥1,400（50%增值费）',
+                '📋 生成调整方案 → 部分退款+客户解释+流程改进',
+                '⚖️ 风险评估 → 财务风险低，客户关系风险中',
+                '📊 引用政策依据 → 客户争议处理条例第12条',
+                '⏸️ 等待财务审批 → 方案已提交财务主管'
+              ],
+
+              // 场景06: 智能账单调整 - 步骤4 marketing-07（执行与通知）
+              'scenario-06-marketing-07': [
+                '💳 录入调整信息 → 系统已登记退款申请',
+                '📊 更新账单状态 → 状态变更为"调整处理中"',
+                '📧 生成回复邮件 → 包含处理结果和详细说明',
+                '📁 案件归档 → 处理记录已存档备查',
+                '✓ 执行完成 → 客户已收到处理通知'
               ]
             };
 
@@ -693,13 +856,40 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                 'Overall rating → Grade B (Medium Risk)'
               ],
 
-              // Scenario 03: Equipment Monitoring - Key step tech-02
-              'scenario-03-tech-02': [
-                'Load LSTM model → Start analysis',
-                'Vibration data → Abnormal fluctuation +38%',
-                'Temperature curve → Increase +12°C',
-                'Noise spectrum → High-frequency anomaly',
-                'Locate component → Main bearing (92% confidence)'
+              // Scenario 03: Smart Service Onboarding - Step 1 product-02 (Eligibility Check)
+              'scenario-03-product-02': [
+                '🔍 Query Customer Account → ID: CUS-2024-8856',
+                '📋 Check Contract Status → Valid until 2025.12.31',
+                '✅ Verify Package Permissions → Enterprise Premium (Activated)',
+                '🎯 Prerequisites Check → Payment completed, documents ready',
+                '✓ Eligibility Approved → Meets activation requirements'
+              ],
+
+              // Scenario 03: Smart Service Onboarding - Step 2 legal-01 (Document Parsing)
+              'scenario-03-legal-01': [
+                '🔍 OCR Document Recognition → 3 files',
+                '📄 Extract Authorization Info → Service Location: Pudong, Shanghai',
+                '✅ Verify Validity Period → 2024.01-2025.12 (Covered)',
+                '📋 Information Completeness → 100% (Name/Address/Date Complete)',
+                '✓ Compliance Confirmation → Passed Review'
+              ],
+
+              // Scenario 03: Smart Service Onboarding - Step 3 hr-03 (Resource Scheduling)
+              'scenario-03-hr-03': [
+                '📅 Check Resource Availability → Engineer Team A available',
+                '⏰ Analyze Time Windows → 2 conflict slots detected',
+                '🎯 Calculate Optimal Time → 2024-12-01 14:00-16:00',
+                '👥 Coordinate Teams → Tech/Ops departments confirmed',
+                '✓ Scheduling Complete → Activation time locked'
+              ],
+
+              // Scenario 03: Smart Service Onboarding - Step 4 tech-08 (System Configuration)
+              'scenario-03-tech-08': [
+                '🔧 Create Activation Task → TASK-SRV-2024-1205',
+                '🔐 Configure Access Permissions → 5 module permissions granted',
+                '📧 Notify Teams → Emails sent to Tech/Sales/Support',
+                '📊 Generate Summary Report → Config details and timeline included',
+                '✓ System Configuration Complete → Ready for activation'
               ],
 
               // Scenario 04: Customer Complaint Analysis - Key step product-02
@@ -720,13 +910,40 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                 'Risk assessment → Medium Risk'
               ],
 
-              // Scenario 06: Financial Anomaly Detection - Key step tech-02
-              'scenario-06-tech-02': [
-                'Start anomaly detection → Isolation Forest',
-                'Scan transaction records → 18,523 items',
-                'Identify abnormal amounts → 2 over limit',
-                'Detect frequent small amounts → ¥9,999×5',
-                'Flag suspicious accounts → Total anomaly ¥2.85M'
+              // Scenario 06: Smart Billing Adjustment - Step 1 marketing-04 (Email Understanding)
+              'scenario-06-marketing-04': [
+                '📧 Parse Email Content → Identified as billing complaint',
+                '🔍 Extract Bill Number → BILL-2024-Q3-8823',
+                '📅 Identify Period → 2024 Q3',
+                '⚠️ Classify Issue → Fee dispute (unexpected charges)',
+                '✓ Create Ticket → ADJ-2024-1205-003'
+              ],
+
+              // Scenario 06: Smart Billing Adjustment - Step 2 finance-01 (Reconciliation Analysis)
+              'scenario-06-finance-01': [
+                '📊 Retrieve Bill → BILL-2024-Q3-8823',
+                '🔍 Customer Query → "Quarterly service fee ¥2,800 higher than expected"',
+                '📋 System Billing Details → Base ¥8,000 + Value-added ¥3,200',
+                '⚠️ Variance Identified → Customer unaware of value-added service charges',
+                '🎯 Root Cause → Sales did not explain value-added billing rules'
+              ],
+
+              // Scenario 06: Smart Billing Adjustment - Step 3 finance-02 (Plan Generation)
+              'scenario-06-finance-02': [
+                '💡 Calculate Adjustment → Recommend refund ¥1,400 (50% value-added fee)',
+                '📋 Generate Adjustment Plan → Partial refund + explanation + process improvement',
+                '⚖️ Risk Assessment → Low financial risk, medium customer relationship risk',
+                '📊 Reference Policy → Customer Dispute Resolution Article 12',
+                '⏸️ Await Financial Approval → Plan submitted to financial supervisor'
+              ],
+
+              // Scenario 06: Smart Billing Adjustment - Step 4 marketing-07 (Execution & Notification)
+              'scenario-06-marketing-07': [
+                '💳 Record Adjustment Info → Refund request registered in system',
+                '📊 Update Bill Status → Status changed to "Under Adjustment"',
+                '📧 Generate Reply Email → Including results and detailed explanation',
+                '📁 Archive Case → Processing record saved for reference',
+                '✓ Execution Complete → Customer received processing notification'
               ]
             };
 
@@ -778,6 +995,12 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
             // 场景04：客户投诉在第2步后需要人工审核AI方案
             needDecision = true;
             decisionConfig = language === 'zh' ? scenario04DecisionCn : scenario04DecisionEn;
+          }
+
+          if (task.id === 'scenario-06' && stepIndex === 2) {
+            // 场景06：账单调整在第2步后需要财务主管审批AI方案
+            needDecision = true;
+            decisionConfig = language === 'zh' ? scenario06DecisionCn : scenario06DecisionEn;
           }
 
           if (needDecision && decisionConfig) {
@@ -990,6 +1213,56 @@ export const CapabilityMatrixLayer = ({ onScenarioSelect, onBack, onScenarioComp
                     '👤 Dedicated account manager assigned for follow-up',
                     '📞 Follow-up plan scheduled',
                     '💰 Optimized plan execution complete'
+                  ];
+
+              const finalLogs = language === 'zh' ? finalLogsCn : finalLogsEn;
+
+              finalLogs.forEach((log, index) => {
+                setTimeout(() => {
+                  setExecutionLogs(prev => [
+                    `[${new Date().toLocaleTimeString()}] ${log}`,
+                    ...prev.slice(0, 20)
+                  ]);
+                }, (index + 1) * 800);
+              });
+
+              setTimeout(() => {
+                completeScenario(decisionOptionId);
+              }, finalLogs.length * 800 + 1000);
+            } else if (decisionOptionId && selectedTask.id === 'scenario-06') {
+              // 场景06：显示最终执行日志
+              const finalLogsCn = decisionOptionId === 'option-approve'
+                ? [
+                    '💳 发起部分退款¥1,400（增值服务费50%）',
+                    '💸 退款已提交，预计1个工作日到账',
+                    '📧 发送账单说明邮件（解释计费规则）',
+                    '🎁 发放客户关怀礼包（200积分）',
+                    '📋 销售部门流程改进通知已发出',
+                    '✅ 调整方案执行完成，客户投诉已化解'
+                  ]
+                : [
+                    '📧 发送详细计费说明邮件',
+                    '📋 销售培训改进通知已发出',
+                    '🎁 发放客户关怀补偿（100积分）',
+                    '📞 客服跟进确认客户理解',
+                    '✅ 维持原账单，投诉已妥善处理'
+                  ];
+
+              const finalLogsEn = decisionOptionId === 'option-approve'
+                ? [
+                    '💳 Initiating partial refund ¥1,400 (50% value-added service fee)',
+                    '💸 Refund submitted, expected within 1 business day',
+                    '📧 Sending billing explanation email (clarifying billing rules)',
+                    '🎁 Customer care package issued (200 points)',
+                    '📋 Sales department process improvement notification sent',
+                    '✅ Adjustment plan execution complete, complaint resolved'
+                  ]
+                : [
+                    '📧 Sending detailed billing explanation email',
+                    '📋 Sales training improvement notification sent',
+                    '🎁 Customer care compensation issued (100 points)',
+                    '📞 Customer service follow-up to confirm understanding',
+                    '✅ Original bill maintained, complaint properly handled'
                   ];
 
               const finalLogs = language === 'zh' ? finalLogsCn : finalLogsEn;
